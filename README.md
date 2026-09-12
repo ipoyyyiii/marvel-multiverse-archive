@@ -49,7 +49,6 @@ It covers continuous universe spines, title placement, zoom legibility, crossove
 - `src/data/catalog.ts` — catalog records, universes, and explained connections.
 - `src/data/logoManifest.ts` — title-to-logo routing table.
 - `src/TimelineEnergy.tsx`, `src/plasma.css` — lightweight plasma-flow visuals.
-- `PROJECT_HANDOFF.md` — product decisions, design invariants, data flow, and agent handoff notes.
 - `public/assets/logos/` — source title logos.
 - `public/assets/logos/release/` — 640px derivatives for card galleries.
 

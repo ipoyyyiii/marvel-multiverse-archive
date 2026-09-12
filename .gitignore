@@ -6,3 +6,4 @@ dist/
 .env
 .env.*
 !.env.example
+PROJECT_HANDOFF.md
