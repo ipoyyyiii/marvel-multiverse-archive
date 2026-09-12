@@ -1,0 +1,86 @@
+/* The beam is static SVG; only a narrow repeated current texture is composited. */
+.plasma-spine .plasma-sheath { opacity: .24; }
+.plasma-spine .plasma-core { opacity: .96; }
+.plasma-spine .plasma-heart { opacity: .9; }
+.plasma-spine .plasma-wisps { pointer-events: none; }
+.plasma-spine .plasma-fractal-wisps { pointer-events: none; }
+.plasma-spine .plasma-fractal-strong { opacity: .9; }
+.plasma-spine .plasma-fractal-branch { opacity: .86; }
+.plasma-spine .plasma-fractal-fine { opacity: .8; }
+.plasma-spine line { stroke-linecap: round; }
+
+.energy-branch.plasma-branch { opacity: .68; }
+.energy-branch.plasma-branch.highlighted { opacity: 1; }
+.plasma-branch path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.plasma-branch .plasma-branch-envelope { opacity: .055; }
+.plasma-branch .plasma-branch-sheath { opacity: .16; }
+.plasma-branch .plasma-branch-wisp { opacity: .4; }
+.plasma-branch .plasma-branch-core { opacity: .9; }
+.plasma-branch .plasma-branch-heart { opacity: .7; }
+
+.plasma-flow-pulse {
+  position: absolute;
+  z-index: 22;
+  display: block;
+  pointer-events: none;
+  border-radius: 999px;
+  /* A tapered current, deliberately white on every universe trunk. */
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.08) 12%, rgba(255,255,255,.62) 43%, rgba(255,255,255,.98) 50%, rgba(255,255,255,.42) 65%, rgba(255,255,255,.06) 88%, transparent 100%);
+  box-shadow: 0 0 10px rgba(244, 249, 255, .32), 0 0 2px rgba(255, 255, 255, .95);
+  contain: layout paint style;
+  opacity: .05;
+  will-change: transform, opacity;
+  animation: plasma-current var(--plasma-flow-duration) linear var(--plasma-flow-delay) infinite;
+  animation-play-state: paused;
+}
+
+.plasma-flow-pulse::after {
+  content: '';
+  position: absolute;
+  left: 17%;
+  right: 17%;
+  top: 35%;
+  height: 30%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, #fff 50%, transparent);
+  opacity: .76;
+}
+
+.plasma-flow-pulse[data-flowing='true'] { animation-play-state: running; }
+.plasma-flow-pulse.vertical { animation-name: plasma-current-vertical; }
+.plasma-flow-pulse.vertical {
+  background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,.08) 12%, rgba(255,255,255,.62) 43%, rgba(255,255,255,.98) 50%, rgba(255,255,255,.42) 65%, rgba(255,255,255,.06) 88%, transparent 100%);
+}
+.plasma-flow-pulse.vertical::after {
+  top: 17%;
+  right: auto;
+  bottom: 17%;
+  left: 35%;
+  width: 30%;
+  height: auto;
+  background: linear-gradient(180deg, transparent, #fff 50%, transparent);
+}
+
+@keyframes plasma-current {
+  0% { transform: translate3d(0, 0, 0); opacity: .05; }
+  6%, 15% { opacity: .78; }
+  34% { opacity: .22; }
+  52% { opacity: .72; }
+  76%, 100% { transform: translate3d(var(--plasma-flow-distance), 0, 0); opacity: .05; }
+}
+
+@keyframes plasma-current-vertical {
+  0% { transform: translate3d(0, 0, 0); opacity: .05; }
+  6%, 15% { opacity: .78; }
+  34% { opacity: .22; }
+  52% { opacity: .72; }
+  76%, 100% { transform: translate3d(0, var(--plasma-flow-distance), 0); opacity: .05; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plasma-flow-pulse {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+}

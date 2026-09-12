@@ -1,0 +1,82 @@
+.plasma-map .map-viewport { overscroll-behavior: contain; overflow-anchor: none; touch-action: pan-x pan-y; }
+.plasma-map .world-scene { background-image: none; }
+.plasma-map .lane-surface { border-color: rgba(139, 168, 203, .055); background: transparent; }
+.plasma-map .lane-surface::before { display: none; }
+.plasma-map .graph-lines { z-index: 12; }
+.plasma-map .map-title-anchor .title-stem { vector-effect: none; opacity: .55; }
+.plasma-map .map-title-anchor.connected .title-stem,
+.plasma-map .map-title-anchor.selected .title-stem { opacity: 1; }
+.plasma-map .branch-hit-area { pointer-events: stroke; cursor: pointer; }
+.plasma-map .temporal-relationship .energy-branch { opacity: .42; }
+.plasma-map .temporal-relationship.is-highlighted .energy-branch { opacity: 1; }
+
+.plasma-map .map-title {
+  z-index: 30;
+  min-height: 0;
+  transform-origin: top left;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: radial-gradient(ellipse at center, rgba(4, 7, 12, .95) 10%, rgba(4, 7, 12, .8) 45%, rgba(4, 7, 12, 0) 74%);
+  transition: none;
+  text-align: center;
+  content-visibility: auto;
+  contain-intrinsic-size: 118px 216px;
+}
+.plasma-map .map-title:hover { filter: none; }
+.plasma-map .map-title:focus-visible { outline: 2px solid #ed1d35; outline-offset: 5px; }
+.plasma-map .map-title .node-art { flex: 0 0 58px; width: 100%; height: 58px; }
+.plasma-map .map-title .node-logo { width: 94%; max-height: 58px; filter: none; }
+.plasma-map .map-title:hover .node-logo { opacity: .86; }
+.plasma-map .map-title .node-wordmark { padding: 4px 0; font: italic 800 23px/1.05 "Barlow Condensed", sans-serif; text-shadow: 0 2px 3px #000; }
+.plasma-map .map-title .node-wordmark.long { font-size: 18px; line-height: 1.05; }
+.plasma-map .map-title .wordmark-node { flex: 1; max-height: 85px; }
+.plasma-map .map-title-caption { position: relative; z-index: 3; display: block; width: 100%; color: #e7edf5; font: 600 15px/1.13 "Barlow Condensed", sans-serif; text-align: center; }
+.plasma-map .map-title .node-meta { padding: 0; font: 500 12px/1.1 "Barlow Condensed", sans-serif; letter-spacing: .2px; color: #a8b4c6; }
+.plasma-map .map-title .node-meta em { font-size: 9px; padding: 1px 3px; }
+.plasma-map .map-title .relationship-count { top: -2px; left: -6px; min-width: 18px; height: 18px; font-size: 10px; }
+.plasma-map .map-title.selected::after { top: auto; bottom: -5px; width: 42px; height: 2px; box-shadow: 0 0 6px #ff2a45; }
+.plasma-map .map-title.selected .node-art.logo-node .node-logo { filter: none; }
+.plasma-map .map-title.selected .map-title-caption { color: #fff; }
+.plasma-map .map-title.connection-endpoint { background: radial-gradient(ellipse, rgba(6, 15, 24, .97) 10%, rgba(6, 15, 24, .8) 48%, transparent 75%); }
+.plasma-map .map-title .event-kicker { top: -16px; font-size: 9px; padding: 3px 8px; letter-spacing: .8px; box-shadow: none; }
+.plasma-map .event-crossover .node-art::before { width: 102px; height: 102px; border: 1px solid #dd8a36a6; background: radial-gradient(circle, transparent 58%, #e18c2226 64%, transparent 72%); filter: none; animation: none; box-shadow: 0 0 16px #e8891829, inset 0 0 12px #e889181a; }
+.plasma-map .event-hub .node-art::before { inset: -6px 22px; border-color: #a3c6dd66; box-shadow: none; }
+
+.plasma-map .map-lane-captions { position: absolute; z-index: 31; inset: 27px auto 66px 0; width: 160px; overflow: hidden; pointer-events: none; }
+.plasma-map .map-lane-caption { position: absolute; left: 0; display: flex; align-items: center; gap: 7px; max-width: 155px; padding: 6px 13px 7px 12px; border-radius: 0 5px 5px 0; background: linear-gradient(90deg, #060a11fa, #060a11e8 75%, #060a1100); }
+.plasma-map .map-lane-caption > i { flex: 0 0 3px; height: 23px; border-radius: 4px; background: var(--accent); }
+.plasma-map .map-lane-caption > span { color: #dce6f2; font: 700 11px/1.3 "Barlow Condensed", sans-serif; letter-spacing: .5px; }
+.plasma-map .map-lane-caption small { display: block; padding-top: 3px; color: #8896aa; font: 500 10px/1.2 "Barlow Condensed", sans-serif; letter-spacing: .1px; }
+.plasma-map .map-empty-state { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); display: grid; gap: 10px; text-align: center; pointer-events: none; }
+.plasma-map .map-empty-state b { font-size: 18px; color: #e2ebf5; }
+.plasma-map .map-empty-state span { font-size: 12px; color: #93a0b4; }
+.plasma-map .map-status-strip { font-size: 9px; }
+.plasma-map .map-bottom-controls { min-height: 51px; height: auto; right: 16px; left: 16px; bottom: 12px; flex-wrap: wrap; gap: 10px 22px; padding: 9px 12px; backdrop-filter: none; background: #080c13f5; }
+.plasma-map .legend { gap: 18px; }
+.plasma-map .legend > span { font-size: 10px; }
+.plasma-map .zoom-controls { margin-left: auto; }
+.plasma-map .zoom-controls button { min-height: 31px; min-width: 30px; padding: 0 8px; font-size: 10px; }
+.plasma-map .zoom-controls > span { height: 31px; min-width: 40px; font-size: 11px; }
+.plasma-map .zoom-controls button:disabled { opacity: .4; cursor: default; }
+.plasma-map .readable-zoom-note { color: #8897ac; font: 500 11px "Barlow Condensed", sans-serif; }
+.plasma-map .map-selection-actions { position: absolute; z-index: 23; right: 16px; bottom: 254px; display: flex; gap: 6px; }
+.plasma-map .map-selection-actions button { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 9px; color: #bccbdc; border: 1px solid #354359; border-radius: 5px; background: #0a101af5; font: 600 11px "Barlow Condensed", sans-serif; }
+.plasma-map .map-selection-actions button:hover { color: #fff; border-color: #7394b8; }
+.plasma-map .map-connection-detail { position: absolute; z-index: 35; left: 18px; top: 42px; width: min(430px, calc(100% - 70px)); padding: 12px 30px 12px 14px; color: #dce8f5; background: #080e17f5; border: 1px solid #566d8999; border-radius: 8px; box-shadow: 0 6px 20px #0005; }
+.plasma-map .map-connection-detail > small { font: 700 9px "Barlow Condensed", sans-serif; letter-spacing: 1.4px; color: #97beda; }
+.plasma-map .map-connection-detail > div { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.plasma-map .map-connection-detail > div > svg { flex-shrink: 0; color: #9dcff1; }
+.plasma-map .map-connection-detail button { border: 0; padding: 0; color: #f0f5fc; background: transparent; text-align: left; font: 600 15px/1.15 "Barlow Condensed", sans-serif; }
+.plasma-map .map-connection-detail > div button:hover { text-decoration: underline; }
+.plasma-map .map-connection-detail p { margin: 9px 0 0; color: #a7b7cb; font: 400 11px/1.55 sans-serif; }
+.plasma-map .map-connection-detail .connection-detail-close { position: absolute; top: 8px; right: 8px; padding: 4px; }
+@media (max-height: 680px) { .plasma-map .map-selection-actions { bottom: 238px; } }
+@media (max-width: 1300px) {
+  .plasma-map .map-status-strip > span { display: none; }
+  .plasma-map .legend { gap: 9px; }
+  .plasma-map .readable-zoom-note { display: none; }
+  .plasma-map .map-bottom-controls { gap: 8px; }
+}

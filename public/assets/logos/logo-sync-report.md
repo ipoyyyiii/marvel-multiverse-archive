@@ -1,0 +1,230 @@
+# Logo asset sync report
+
+Generated 2026-09-10 from Wikimedia Commons search results.
+
+- Catalog records checked: 234
+- Existing mappings preserved: 20
+- New local assets downloaded: 78
+- Titles still missing a high-confidence logo: 136
+
+## Newly downloaded assets
+
+- **The Incredible Hulk** (mcu) → `/assets/logos/mcu-the-incredible-hulk.svg` · [source](existing partial asset)
+- **Iron Man 2** (mcu) → `/assets/logos/mcu-iron-man-2.svg` · [source](existing partial asset)
+- **Thor** (mcu) → `/assets/logos/mcu-thor.svg` · [source](existing partial asset)
+- **Captain America: The First Avenger** (mcu) → `/assets/logos/mcu-captain-america-the-first-avenger.svg` · [source](existing partial asset)
+- **Iron Man 3** (mcu) → `/assets/logos/mcu-iron-man-3.svg` · [source](existing partial asset)
+- **Thor: The Dark World** (mcu) → `/assets/logos/mcu-thor-the-dark-world.svg` · [source](existing partial asset)
+- **Captain America: The Winter Soldier** (mcu) → `/assets/logos/mcu-captain-america-the-winter-soldier.png` · [source](existing partial asset)
+- **Guardians of the Galaxy** (mcu) → `/assets/logos/mcu-guardians-of-the-galaxy.png` · [source](existing partial asset)
+- **Avengers: Age of Ultron** (mcu) → `/assets/logos/mcu-avengers-age-of-ultron.svg` · [source](existing partial asset)
+- **Ant-Man** (mcu) → `/assets/logos/mcu-ant-man.png` · [source](existing partial asset)
+- **Captain America: Civil War** (mcu) → `/assets/logos/mcu-captain-america-civil-war.png` · [source](existing partial asset)
+- **Doctor Strange** (mcu) → `/assets/logos/mcu-doctor-strange.png` · [source](existing partial asset)
+- **Guardians of the Galaxy Vol. 2** (mcu) → `/assets/logos/mcu-guardians-of-the-galaxy-vol-2.svg` · [source](existing partial asset)
+- **Spider-Man: Homecoming** (mcu) → `/assets/logos/mcu-spider-man-homecoming.svg` · [source](existing partial asset)
+- **Thor: Ragnarok** (mcu) → `/assets/logos/mcu-thor-ragnarok.png` · [source](https://commons.wikimedia.org/wiki/File:Thor_Ragnarok_Logo_Black.svg)
+- **Black Panther** (mcu) → `/assets/logos/mcu-black-panther.png` · [source](https://commons.wikimedia.org/wiki/File:Black_Panther_Logo_Black.svg)
+- **Avengers: Infinity War** (mcu) → `/assets/logos/mcu-avengers-infinity-war.png` · [source](https://commons.wikimedia.org/wiki/File:Avengers-infinity-war-logo.svg)
+- **Ant-Man and the Wasp** (mcu) → `/assets/logos/mcu-ant-man-and-the-wasp.png` · [source](https://commons.wikimedia.org/wiki/File:Ant-Man_and_the_Wasp_Logo_Black.svg)
+- **Captain Marvel** (mcu) → `/assets/logos/mcu-captain-marvel.png` · [source](https://commons.wikimedia.org/wiki/File:Captain_Marvel_Logo.svg)
+- **Shang-Chi and the Legend of the Ten Rings** (mcu) → `/assets/logos/mcu-shang-chi-and-the-legend-of-the-ten-rings.webp` · [source](existing partial asset)
+- **Eternals** (mcu) → `/assets/logos/mcu-eternals.png` · [source](existing partial asset)
+- **Thor: Love and Thunder** (mcu) → `/assets/logos/mcu-thor-love-and-thunder.png` · [source](https://commons.wikimedia.org/wiki/File:Thor_Love_and_Thunder_Logo.svg)
+- **Black Panther: Wakanda Forever** (mcu) → `/assets/logos/mcu-black-panther-wakanda-forever.png` · [source](https://commons.wikimedia.org/wiki/File:Black_Panther_Wakanda_Forever_logo.png)
+- **Ant-Man and the Wasp: Quantumania** (mcu) → `/assets/logos/mcu-ant-man-and-the-wasp-quantumania.png` · [source](https://commons.wikimedia.org/wiki/File:Ant_Man_And_The_Wasp_Quantumania_Logo.svg)
+- **Guardians of the Galaxy Vol. 3** (mcu) → `/assets/logos/mcu-guardians-of-the-galaxy-vol-3.png` · [source](https://commons.wikimedia.org/wiki/File:Guardians_of_the_Galaxy_Volume_3_Logo.svg)
+- **The Marvels** (mcu) → `/assets/logos/mcu-the-marvels.png` · [source](https://commons.wikimedia.org/wiki/File:The_Marvels_Logo.svg)
+- **Captain America: Brave New World** (mcu) → `/assets/logos/mcu-captain-america-brave-new-world.png` · [source](https://commons.wikimedia.org/wiki/File:Captain_America_Brave_New_World_Logo.svg)
+- **Spider-Man: Brand New Day** (mcu) → `/assets/logos/mcu-spider-man-brand-new-day.png` · [source](https://commons.wikimedia.org/wiki/File:Spider_Man_Brand_New_Day_Logo.svg)
+- **WandaVision** (mcu) → `/assets/logos/mcu-wandavision.png` · [source](https://commons.wikimedia.org/wiki/File:WandaVision_Episode_1_title_card_logo.svg)
+- **Hawkeye** (mcu) → `/assets/logos/mcu-hawkeye.png` · [source](https://commons.wikimedia.org/wiki/File:Hawkeye_Logo.svg)
+- **Moon Knight** (mcu) → `/assets/logos/mcu-moon-knight.png` · [source](https://commons.wikimedia.org/wiki/File:Moon_Knight_Logo.svg)
+- **Ms. Marvel** (mcu) → `/assets/logos/mcu-ms-marvel.png` · [source](https://commons.wikimedia.org/wiki/File:Ms._Marvel_MCU_title_logo_yellow.svg)
+- **She-Hulk: Attorney at Law** (mcu) → `/assets/logos/mcu-she-hulk-attorney-at-law.png` · [source](https://commons.wikimedia.org/wiki/File:She_Hulk_Attorney_At_Law_Logo.svg)
+- **Werewolf by Night** (mcu) → `/assets/logos/mcu-werewolf-by-night.png` · [source](https://commons.wikimedia.org/wiki/File:Werewolf_By_Night_Logo.svg)
+- **The Guardians of the Galaxy Holiday Special** (mcu) → `/assets/logos/mcu-the-guardians-of-the-galaxy-holiday-special.png` · [source](https://commons.wikimedia.org/wiki/File:The_Guardians_of_the_Galaxy_Holiday_Special_Logo.svg)
+- **Echo** (mcu) → `/assets/logos/mcu-echo.png` · [source](https://commons.wikimedia.org/wiki/File:Echo_of_moscow_logo.svg)
+- **Daredevil: Born Again** (mcu) → `/assets/logos/mcu-daredevil-born-again.png` · [source](https://commons.wikimedia.org/wiki/File:Logo_daredevil_born_again_2025.svg)
+- **Ironheart** (mcu) → `/assets/logos/mcu-ironheart.png` · [source](https://commons.wikimedia.org/wiki/File:Ironheart_Logo.svg)
+- **X-Men: The Last Stand** (fox) → `/assets/logos/fox-x-men-the-last-stand.png` · [source](https://commons.wikimedia.org/wiki/File:X-Men_%E2%80%93_The_Last_Stand_Logo.png)
+- **The Wolverine** (fox) → `/assets/logos/fox-the-wolverine.png` · [source](https://commons.wikimedia.org/wiki/File:Wolverine-logo.svg)
+- **Dark Phoenix** (fox) → `/assets/logos/fox-dark-phoenix.png` · [source](https://commons.wikimedia.org/wiki/File:Logotipo_Oficial_de_Dark_Phoenix.png)
+- **The Incredible Hulk** (legacy) → `/assets/logos/legacy-the-incredible-hulk.png` · [source](https://commons.wikimedia.org/wiki/File:The_Incredible_Hulk_(Marvel_1996_Animated_Series)_logo.svg)
+- **The Amazing Spider-Man** (legacy) → `/assets/logos/legacy-the-amazing-spider-man.png` · [source](https://commons.wikimedia.org/wiki/File:The_amazing_spiderman_logo.svg)
+- **Hulk** (legacy) → `/assets/logos/legacy-hulk.png` · [source](https://commons.wikimedia.org/wiki/File:The-incredible-hulk-logo.svg)
+- **Blade: The Series** (legacy) → `/assets/logos/legacy-blade-the-series.png` · [source](https://commons.wikimedia.org/wiki/File:Queen%27s_Blade_gamebook_logo.svg)
+- **Daredevil** (legacy) → `/assets/logos/legacy-daredevil.png` · [source](https://commons.wikimedia.org/wiki/File:Daredevil_Logo.svg)
+- **Elektra** (legacy) → `/assets/logos/legacy-elektra.png` · [source](https://commons.wikimedia.org/wiki/File:Elektra_Birseck_M%C3%BCnchenstein_logo.svg)
+- **Fantastic Four** (legacy) → `/assets/logos/legacy-fantastic-four.png` · [source](https://commons.wikimedia.org/wiki/File:Fantastic_Four_(1994_TV_series)_logo.svg)
+- **The Gifted** (marvel-tv) → `/assets/logos/marvel-tv-the-gifted.png` · [source](https://commons.wikimedia.org/wiki/File:The_Gifted_(Marvel_Television_series_logo).svg)
+- **Runaways** (marvel-tv) → `/assets/logos/marvel-tv-runaways.png` · [source](https://commons.wikimedia.org/wiki/File:The_Runaways_logo.svg)
+- **Daredevil** (defenders) → `/assets/logos/defenders-daredevil.png` · [source](https://commons.wikimedia.org/wiki/File:Daredevil_Logo.svg)
+- **The Marvel Super Heroes** (animation) → `/assets/logos/animation-the-marvel-super-heroes.png` · [source](https://commons.wikimedia.org/wiki/File:The_Marvel_Super_Heroes_(1966_animated_series)_logo.svg)
+- **Fantastic Four** (animation) → `/assets/logos/animation-fantastic-four.png` · [source](https://commons.wikimedia.org/wiki/File:Fantastic_Four_(1994_TV_series)_logo.svg)
+- **Spider-Man** (animation) → `/assets/logos/animation-spider-man.png` · [source](https://commons.wikimedia.org/wiki/File:Spider-Man_video_game_series_logo.png)
+- **Spider-Man** (animation) → `/assets/logos/animation-spider-man.png` · [source](existing partial asset)
+- **Spider-Man and His Amazing Friends** (animation) → `/assets/logos/animation-spider-man-and-his-amazing-friends.png` · [source](https://commons.wikimedia.org/wiki/File:Spider-Man_and_His_Amazing_Friends_(1981)_logo.svg)
+- **The Incredible Hulk** (animation) → `/assets/logos/animation-the-incredible-hulk.png` · [source](https://commons.wikimedia.org/wiki/File:The_Incredible_Hulk_(Marvel_1996_Animated_Series)_logo.svg)
+- **Fantastic Four** (animation) → `/assets/logos/animation-fantastic-four.png` · [source](existing partial asset)
+- **Iron Man** (animation) → `/assets/logos/animation-iron-man.png` · [source](https://commons.wikimedia.org/wiki/File:Iron_Man_3_-_2013_movie_logo.svg)
+- **Spider-Man: The Animated Series** (animation) → `/assets/logos/animation-spider-man-the-animated-series.png` · [source](https://commons.wikimedia.org/wiki/File:SPIDER-MAN_1994_animated_series_logo.svg)
+- **The Incredible Hulk** (animation) → `/assets/logos/animation-the-incredible-hulk.png` · [source](existing partial asset)
+- **Spider-Man Unlimited** (animation) → `/assets/logos/animation-spider-man-unlimited.png` · [source](https://commons.wikimedia.org/wiki/File:Spider-Man_Unlimited_Japanese_logo.png)
+- **X-Men: Evolution** (animation) → `/assets/logos/animation-x-men-evolution.png` · [source](https://commons.wikimedia.org/wiki/File:X-Men_-_Evolution_(2000)_logo.svg)
+- **Spider-Man: The New Animated Series** (animation) → `/assets/logos/animation-spider-man-the-new-animated-series.png` · [source](https://commons.wikimedia.org/wiki/File:Spider-Man_The_New_Animated_Series.png)
+- **The Avengers: Earth’s Mightiest Heroes** (animation) → `/assets/logos/animation-the-avengers-earths-mightiest-heroes.png` · [source](https://commons.wikimedia.org/wiki/File:The_Avengers_Earth%27s_Mightiest_Heroes_logo.svg)
+- **Ultimate Spider-Man** (animation) → `/assets/logos/animation-ultimate-spider-man.png` · [source](https://commons.wikimedia.org/wiki/File:Ultimate_Spider-man_(2012)_Japanese_logo.png)
+- **Big Hero 6: The Series** (animation) → `/assets/logos/animation-big-hero-6-the-series.png` · [source](https://commons.wikimedia.org/wiki/File:Big_Hero_6_The_Series_Logo.png)
+- **M.O.D.O.K.** (animation) → `/assets/logos/animation-m-o-d-o-k.png` · [source](https://commons.wikimedia.org/wiki/File:Wikimedia_Foundation_logo_-_vertical.svg)
+- **Baymax!** (animation) → `/assets/logos/animation-baymax.png` · [source](https://commons.wikimedia.org/wiki/File:Disney_Baymax!_logo.png)
+- **Moon Girl and Devil Dinosaur** (animation) → `/assets/logos/animation-moon-girl-and-devil-dinosaur.png` · [source](https://commons.wikimedia.org/wiki/File:Moon_Girl_and_Devil_Dinosaur_logo.webp)
+- **Blade: Anime** (animation) → `/assets/logos/animation-blade-anime.png` · [source](https://commons.wikimedia.org/wiki/File:Tekkaman_BLade_logo.png)
+- **The Monster of Frankenstein** (animation) → `/assets/logos/animation-the-monster-of-frankenstein.png` · [source](https://commons.wikimedia.org/wiki/File:Gappa_Frankensteins_fliegende_Monster_Logo_001.svg)
+- **Spider-Man: Into the Spider-Verse** (animation) → `/assets/logos/animation-spider-man-into-the-spider-verse.png` · [source](https://commons.wikimedia.org/wiki/File:Spider-Man_Across_the_Spider-Verse_logo.webp)
+- **Spider-Man: Across the Spider-Verse** (animation) → `/assets/logos/animation-spider-man-across-the-spider-verse.png` · [source](https://commons.wikimedia.org/wiki/File:Spider-Man_Across_the_Spider-Verse_logo.webp)
+- **Marvel Zombies** (alternate) → `/assets/logos/alternate-marvel-zombies.png` · [source](https://commons.wikimedia.org/wiki/File:Marvel_Zombies_-_logo.webp)
+- **Spider-Noir** (sony) → `/assets/logos/sony-spider-noir.png` · [source](https://commons.wikimedia.org/wiki/File:Spider_Noir_JP_logo.svg)
+- **Avengers: Doomsday** (mcu) → `/assets/logos/mcu-avengers-doomsday.png` · [source](https://commons.wikimedia.org/wiki/File:Avengers_Doomsday_logo.png)
+- **Avengers: Secret Wars** (mcu) → `/assets/logos/mcu-avengers-secret-wars.png` · [source](https://commons.wikimedia.org/wiki/File:Avengers_Secret_Wars_Logo.svg)
+
+## Needs manual lookup
+
+- **Black Widow** (mcu) — Asset 429
+- **Thunderbolts*** (mcu) — Asset 429
+- **The Consultant** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **A Funny Thing Happened on the Way to Thor’s Hammer** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **Item 47** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **Agent Carter** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **All Hail the King** (mcu) — Commons rate limit persisted after retries
+- **WHIH Newsfront** (mcu) — Commons rate limit persisted after retries
+- **Team Thor** (mcu) — Commons rate limit persisted after retries
+- **Team Thor: Part 2** (mcu) — Commons rate limit persisted after retries
+- **Team Darryl** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **Peter’s To-Do List** (mcu) — Asset 429
+- **The Daily Bugle** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **The Falcon and the Winter Soldier** (mcu) — Asset 429
+- **I Am Groot** (mcu) — Commons rate limit persisted after retries
+- **Secret Invasion** (mcu) — Asset 429
+- **Agatha All Along** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **Eyes of Wakanda** (mcu) — Commons rate limit persisted after retries
+- **Wonder Man** (mcu) — Commons rate limit persisted after retries
+- **Daredevil: Born Again — Season 2** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **The Punisher: One Last Kill** (mcu) — No high-confidence Wikimedia Commons logo candidate
+- **X2: X-Men United** (fox) — No high-confidence Wikimedia Commons logo candidate
+- **X-Men Origins: Wolverine** (fox) — Asset 429
+- **X-Men: First Class** (fox) — Asset 429
+- **X-Men: Days of Future Past** (fox) — Commons rate limit persisted after retries
+- **X-Men: Apocalypse** (fox) — Commons rate limit persisted after retries
+- **Deadpool 2** (fox) — No high-confidence Wikimedia Commons logo candidate
+- **The New Mutants** (fox) — No high-confidence Wikimedia Commons logo candidate
+- **Morbius** (sony) — Asset 429
+- **Madame Web** (sony) — Asset 429
+- **Venom: The Last Dance** (sony) — No high-confidence Wikimedia Commons logo candidate
+- **Kraven the Hunter** (sony) — Commons rate limit persisted after retries
+- **Captain America** (legacy) — Commons rate limit persisted after retries
+- **The Incredible Hulk Returns** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **The Trial of the Incredible Hulk** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **The Death of the Incredible Hulk** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Man Strikes Back** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Man: The Dragon’s Challenge** (legacy) — Commons rate limit persisted after retries
+- **Dr. Strange** (legacy) — Commons rate limit persisted after retries
+- **Captain America** (legacy) — Commons rate limit persisted after retries
+- **Captain America II: Death Too Soon** (legacy) — Commons rate limit persisted after retries
+- **Generation X** (legacy) — Asset 429
+- **Nick Fury: Agent of S.H.I.E.L.D.** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Power Pack** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Man (Toei)** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Man (Toei film)** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Howard the Duck** (legacy) — Commons rate limit persisted after retries
+- **The Punisher** (legacy) — Commons rate limit persisted after retries
+- **Captain America** (legacy) — Commons rate limit persisted after retries
+- **Man-Thing** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Blade** (legacy) — Asset 429
+- **Blade II** (legacy) — Asset 429
+- **Blade: Trinity** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Fantastic Four** (legacy) — Commons rate limit persisted after retries
+- **Fantastic Four: Rise of the Silver Surfer** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Ghost Rider** (legacy) — Asset 429
+- **Ghost Rider: Spirit of Vengeance** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **The Punisher** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Punisher: War Zone** (legacy) — No high-confidence Wikimedia Commons logo candidate
+- **Mutant X** (marvel-tv) — Commons rate limit persisted after retries
+- **Agents of S.H.I.E.L.D.** (marvel-tv) — Commons rate limit persisted after retries
+- **Agent Carter** (marvel-tv) — No high-confidence Wikimedia Commons logo candidate
+- **Agents of S.H.I.E.L.D.: Slingshot** (marvel-tv) — Commons rate limit persisted after retries
+- **Legion** (marvel-tv) — Asset 429
+- **Inhumans** (marvel-tv) — No high-confidence Wikimedia Commons logo candidate
+- **Cloak & Dagger** (marvel-tv) — No high-confidence Wikimedia Commons logo candidate
+- **Helstrom** (marvel-tv) — No high-confidence Wikimedia Commons logo candidate
+- **Jessica Jones** (defenders) — Commons rate limit persisted after retries
+- **Luke Cage** (defenders) — Commons rate limit persisted after retries
+- **Iron Fist** (defenders) — Commons rate limit persisted after retries
+- **The Defenders** (defenders) — Asset 429
+- **The Punisher** (defenders) — No high-confidence Wikimedia Commons logo candidate
+- **The New Fantastic Four** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Woman** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Fred and Barney Meet the Thing** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Pryde of the X-Men** (animation) — Commons rate limit persisted after retries
+- **X-Men: The Animated Series** (animation) — Commons rate limit persisted after retries
+- **Silver Surfer** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Avengers: United They Stand** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Fantastic Four: World’s Greatest Heroes** (animation) — Commons rate limit persisted after retries
+- **The Spectacular Spider-Man** (animation) — Commons rate limit persisted after retries
+- **Wolverine and the X-Men** (animation) — Commons rate limit persisted after retries
+- **Iron Man: Armored Adventures** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **The Super Hero Squad Show** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Avengers Assemble** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Hulk and the Agents of S.M.A.S.H.** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Marvel Disk Wars: The Avengers** (animation) — Commons rate limit persisted after retries
+- **Guardians of the Galaxy** (animation) — Commons rate limit persisted after retries
+- **Marvel Future Avengers** (animation) — Commons rate limit persisted after retries
+- **Marvel’s Spider-Man** (animation) — Commons rate limit persisted after retries
+- **Marvel Rising** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Hit-Monkey** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Spidey and His Amazing Friends** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **X-Men ’97** (animation) — Commons rate limit persisted after retries
+- **Iron Man and His Awesome Friends** (animation) — Commons rate limit persisted after retries
+- **LEGO Marvel Avengers: Strange Tails** (animation) — Commons rate limit persisted after retries
+- **Iron Man: Anime** (animation) — Commons rate limit persisted after retries
+- **Wolverine: Anime** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **X-Men: Anime** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Dracula: Sovereign of the Damned** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Ultimate Avengers** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Ultimate Avengers 2** (animation) — Commons rate limit persisted after retries
+- **The Invincible Iron Man** (animation) — Commons rate limit persisted after retries
+- **Doctor Strange: The Sorcerer Supreme** (animation) — Commons rate limit persisted after retries
+- **Next Avengers: Heroes of Tomorrow** (animation) — Commons rate limit persisted after retries
+- **Hulk Vs.** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Planet Hulk** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Thor: Tales of Asgard** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Iron Man: Rise of Technovore** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Iron Man & Hulk: Heroes United** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Avengers Confidential: Black Widow & Punisher** (animation) — Commons rate limit persisted after retries
+- **Iron Man & Captain America: Heroes United** (animation) — Commons rate limit persisted after retries
+- **Big Hero 6** (animation) — Commons rate limit persisted after retries
+- **Marvel Super Hero Adventures: Frost Fight!** (animation) — Commons rate limit persisted after retries
+- **Hulk: Where Monsters Dwell** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **LEGO Marvel Super Heroes: Maximum Overload** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **LEGO Marvel Super Heroes: Avengers Reassembled** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **LEGO Marvel Super Heroes: The Thanos Threat** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **LEGO Marvel Super Heroes: Trouble in Wakanda** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **LEGO Marvel Spider-Man: Vexed by Venom** (animation) — Commons rate limit persisted after retries
+- **LEGO Marvel Avengers: Climate Conundrum** (animation) — Commons rate limit persisted after retries
+- **LEGO Marvel Avengers: Loki in Training** (animation) — Commons rate limit persisted after retries
+- **LEGO Marvel Avengers: Time Twisted** (animation) — Commons rate limit persisted after retries
+- **LEGO Marvel Avengers: Code Red** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **LEGO Marvel Avengers: Mission Demolition** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Ham: Caught in a Ham** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **The Spider Within: A Spider-Verse Story** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Marvel Rising: Secret Warriors** (animation) — Commons rate limit persisted after retries
+- **Marvel Rising: Chasing Ghosts** (animation) — Commons rate limit persisted after retries
+- **Marvel Rising: Heart of Iron** (animation) — Commons rate limit persisted after retries
+- **Marvel Rising: Battle of the Bands** (animation) — Commons rate limit persisted after retries
+- **Marvel Rising: Operation Shuri** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Marvel Rising: Playing with Fire** (animation) — No high-confidence Wikimedia Commons logo candidate
+- **Your Friendly Neighborhood Spider-Man** (alternate) — No high-confidence Wikimedia Commons logo candidate
+- **Spider-Man: Beyond the Spider-Verse** (animation) — Commons rate limit persisted after retries
+- **VisionQuest** (mcu) — Commons rate limit persisted after retries
+
+Search results are candidates for a private local archive and should be reviewed before redistribution. Keep source and license information with any asset you retain.

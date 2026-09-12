@@ -1,0 +1,50 @@
+.archive-minimap {
+  position: absolute;
+  z-index: 22;
+  right: 16px;
+  bottom: 74px;
+  width: 240px;
+  padding: 8px;
+  border: 1px solid #3b475b;
+  border-radius: 9px;
+  background: rgba(7, 10, 16, .96);
+  box-shadow: 0 9px 24px #0006;
+}
+
+.archive-minimap-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 2px 7px;
+  color: #c0cbdb;
+  font: 600 9px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 1px;
+}
+
+.archive-minimap-heading span:last-child { color: #8795a9; }
+
+.archive-minimap-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 224 / 116;
+  border-radius: 4px;
+  background: #04070b;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.archive-minimap-canvas:focus-visible { outline: 2px solid #f0253e; outline-offset: 3px; }
+.archive-minimap-canvas:active { cursor: grabbing; }
+.archive-minimap-canvas line,
+.archive-minimap-canvas path,
+.archive-minimap-canvas rect { vector-effect: non-scaling-stroke; }
+.archive-minimap-route { fill: none; stroke: #b8d8f5; stroke-width: .8; opacity: .65; }
+.archive-minimap-route.is-selected { stroke: #e3eaff; stroke-width: 1.1; opacity: .95; }
+.archive-minimap-viewport { fill: #b9d5ff15; stroke: #f3f6ff; stroke-width: 1; }
+.archive-minimap-selected { fill: #f0253e; stroke: #fff; stroke-width: 1; }
+.archive-minimap-hint { padding-top: 6px; color: #8d9bad; text-align: center; font: 600 8px/1.2 "Barlow Condensed", sans-serif; letter-spacing: 1px; }
+
+@media (max-height: 680px) {
+  .archive-minimap { width: 208px; }
+}
