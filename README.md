@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/favicon.svg" alt="Marvel Multiverse Archive logo" width="96" />
+  <img src="public/image.png" alt="Marvel Multiverse Archive logo" width="240" />
 </p>
 
 # Marvel Multiverse Archive
