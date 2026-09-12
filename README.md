@@ -8,6 +8,10 @@ Marvel Multiverse Archive is a personal, high-fidelity React archive for explori
 
 The archive keeps MCU/Earth-616, Fox X-Men, Raimi Spider-Man, Amazing Spider-Man, Sony/Venom, Legacy Marvel, Marvel Television, Defenders, Animation, Spider-Verse, and alternate realities distinct. Uncertain placements are labeled rather than silently treated as canon.
 
+## Live demo
+
+Open the deployed archive at [marvel-multiverse-archive.vercel.app](https://marvel-multiverse-archive.vercel.app).
+
 ## Local development
 
 ```bash
