@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/image.png" alt="Marvel Multiverse Archive logo" width="240" />
+  <img src="public/image.png" alt="Marvel Multiverse Archive logo" width="704" />
 </p>
 
 # Marvel Multiverse Archive
