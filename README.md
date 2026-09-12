@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/favicon.svg" alt="Marvel Multiverse Archive logo" width="96" />
+</p>
+
 # Marvel Multiverse Archive
 
 Marvel Multiverse Archive is a personal, high-fidelity React archive for exploring Marvel screen continuities. It presents every cataloged title as a visual title-logo node across three synchronized views:
