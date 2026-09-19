@@ -269,11 +269,18 @@ export default function ReleaseOrder({
       <div className="release-groups" data-group-count={sortedGroups.length} data-column-count={groupColumns.length}>
         {groupColumns.map((column, columnIndex) => (
           <div className="release-group-column" key={`release-column-${columnIndex}`}>
-            {column.map((group) => {
+            {column.map((group, groupIndex) => {
               const meta = { ...(DEFAULT_GROUP_META[group.id] || {}), ...(groupMeta?.[group.id] || {}), ...group }
               const accent = meta.accent || universe.color
               return (
-                <section key={group.id} className="release-group" style={{ '--release-group-accent': accent } as CSSProperties}>
+                <section
+                  key={group.id}
+                  className="release-group"
+                  style={{
+                    '--release-group-accent': accent,
+                    '--release-mobile-order': groupIndex * groupColumns.length + columnIndex,
+                  } as CSSProperties}
+                >
                   <header className="release-group-header">
                     <div>
                       <span className="release-group-label">{meta.label || group.id.replaceAll('-', ' ').toUpperCase()}</span>

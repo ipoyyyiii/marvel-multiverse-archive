@@ -45,6 +45,18 @@
 .archive-minimap-selected { fill: #f0253e; stroke: #fff; stroke-width: 1; }
 .archive-minimap-hint { padding-top: 6px; color: #8d9bad; text-align: center; font: 600 8px/1.2 "Barlow Condensed", sans-serif; letter-spacing: 1px; }
 
+@media (max-width: 767px) {
+  .archive-minimap {
+    right: 8px;
+    bottom: 66px;
+    width: min(206px, calc(100vw - 16px));
+    padding: 7px;
+  }
+  .archive-minimap-heading { padding-bottom: 5px; font-size: 9px; }
+  .archive-minimap-canvas { aspect-ratio: 224 / 116; }
+  .archive-minimap-hint { font-size: 8px; }
+}
+
 @media (max-height: 680px) {
   .archive-minimap { width: 208px; }
 }

@@ -22,7 +22,7 @@
 
 html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 
-body { min-width: 1180px; background: #050608; }
+body { min-width: 0; background: #050608; }
 
 button, input, textarea, select { font: inherit; }
 button { color: inherit; }
@@ -219,7 +219,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 .workspace {
   position: relative;
+  width: 100%;
   min-height: 0;
+  min-width: 0;
   display: grid;
   grid-template-columns: 202px minmax(0, 1fr) 330px;
   grid-template-rows: 90px minmax(0, 1fr);
@@ -262,7 +264,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   background: transparent;
 }
 .universe-row:hover { color: #fff; background: rgba(255, 255, 255, .035); }
-.universe-row.active { color: #fff; border-color: #373f4e; background: linear-gradient(90deg, rgba(237, 29, 53, .12), rgba(255, 255, 255, .025)); }
+.universe-row.active { color: #fff; border-color: color-mix(in srgb, var(--accent, #dce7f5) 32%, #373f4e); background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #dce7f5) 12%, transparent), rgba(255, 255, 255, .025)); }
 .universe-select { min-width: 0; height: 29px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 4px 3px 4px 7px; text-align: left; color: inherit; border: 0; border-radius: 4px; background: transparent; }
 .all-universe-select { grid-template-columns: 19px minmax(0, 1fr) auto; }
 .universe-select:hover { color: #fff; background: rgba(255, 255, 255, .04); }
@@ -687,6 +689,302 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 }
 .inspector-reopen span { writing-mode: vertical-rl; transform: rotate(180deg); font: 700 7px "Barlow Condensed"; letter-spacing: 1.2px; }
 .inspector-reopen:hover { color: #fff; border-color: #68788f; background: rgba(20, 25, 34, .98); }
+
+/* Compact shell ---------------------------------------------------------
+   The archive keeps its large relationship canvas, but the application
+   chrome becomes a drawer/sheet so it never forces the page wider than the
+   device viewport.  Desktop rules above remain the source of truth for the
+   768px+ layout. */
+.mobile-scrim { display: none; }
+
+@media (max-width: 767px) {
+  :root { color-scheme: dark; }
+  html, body, #root { width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
+  body { min-width: 0; }
+
+  .app-shell {
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: 98px minmax(0, 1fr);
+  }
+
+  .top-nav {
+    height: 98px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 56px 42px;
+    gap: 0 8px;
+    padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  }
+  .brand-lockup { min-width: 0; overflow: hidden; }
+  .sidebar-toggle { width: 40px; height: 40px; flex: 0 0 40px; margin-right: 5px; }
+  .marvel-mark { height: 30px; padding-inline: 6px; font-size: 22px; }
+  .brand-divider { height: 23px; margin-inline: 7px; }
+  .archive-name { overflow: hidden; text-overflow: ellipsis; font-size: 14px; letter-spacing: .75px; }
+
+  .nav-actions { min-width: 0; gap: 0; }
+  .global-search {
+    width: clamp(116px, 39vw, 180px);
+    min-width: 0;
+    height: 40px;
+    gap: 7px;
+    padding-inline: 10px;
+  }
+  .global-search input { min-width: 0; font-size: 16px; }
+  .global-search input::placeholder { text-overflow: ellipsis; }
+  .archive-count { display: none; }
+  .search-results {
+    position: fixed;
+    top: 106px;
+    right: max(10px, env(safe-area-inset-right));
+    left: max(10px, env(safe-area-inset-left));
+    max-height: min(70dvh, 520px);
+    overflow-y: auto;
+  }
+
+  .archive-mode-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    align-self: center;
+  }
+  .archive-mode-button {
+    min-width: 0;
+    min-height: 30px;
+    height: 30px;
+    padding-inline: 4px;
+    font-size: 0;
+    letter-spacing: .6px;
+  }
+  .archive-mode-button::after { font: 700 10px/1 "Barlow Condensed", sans-serif; }
+  .archive-mode-button:nth-child(1)::after { content: 'MAP'; }
+  .archive-mode-button:nth-child(2)::after { content: 'RELEASE'; }
+  .archive-mode-button:nth-child(3)::after { content: 'CHRONOLOGY'; }
+
+  .workspace,
+  .workspace.sidebar-open,
+  .workspace.sidebar-closed,
+  .workspace.inspector-open,
+  .workspace.inspector-closed,
+  .workspace.sidebar-open.inspector-open,
+  .workspace.sidebar-closed.inspector-open,
+  .workspace.sidebar-open.inspector-closed,
+  .workspace.sidebar-closed.inspector-closed {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .explore-toolbar {
+    grid-column: 1;
+    grid-row: 1;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px 10px;
+  }
+  .explore-title { min-width: 0; }
+  .explore-title h1 { font-size: 24px; }
+  .explore-title p { font-size: 10px; }
+  .view-controls { align-items: stretch; gap: 8px; }
+  .map-mode-badge { justify-content: center; height: 30px; }
+  .toolbar-toggles { flex-wrap: wrap; gap: 7px 12px; }
+  .connection-mode { flex: 1 1 100%; min-height: 38px; justify-content: space-between; }
+  .connection-mode > span { display: inline; font-size: 8px; }
+  .connection-mode select { flex: 1; height: 38px; min-width: 0; font-size: 12px; }
+  .toggle-control { min-height: 38px; font-size: 10px; }
+  .toggle-track { width: 30px; height: 17px; }
+  .toggle-track span { width: 11px; height: 11px; top: 2px; left: 2px; }
+  .toggle-control.on .toggle-track span { left: 16px; }
+
+  .map-panel {
+    grid-column: 1;
+    grid-row: 2;
+    border-right: 0;
+  }
+  .map-status-strip { height: 31px; padding-inline: 10px; font-size: 8px; }
+  .map-status-strip > span { display: none; }
+  .map-viewport { overscroll-behavior: contain; }
+
+  .mobile-scrim {
+    position: absolute;
+    z-index: 24;
+    inset: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(0, 0, 0, .58);
+    backdrop-filter: blur(2px);
+  }
+  .workspace.sidebar-open .mobile-scrim,
+  .workspace.inspector-open .mobile-scrim { display: block; }
+
+  .sidebar {
+    position: absolute;
+    z-index: 25;
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    width: min(86vw, 326px);
+    max-width: 100%;
+    border-right: 1px solid #354052;
+    box-shadow: 18px 0 42px rgba(0, 0, 0, .56);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-102%);
+  }
+  .workspace.sidebar-open .sidebar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+  .workspace.inspector-open .sidebar {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-102%);
+  }
+  .sidebar-scroll {
+    padding: calc(14px + env(safe-area-inset-top)) 14px 20px;
+  }
+  .catalog-proof { padding-bottom: env(safe-area-inset-bottom); }
+  .universe-row { min-height: 44px; grid-template-columns: minmax(0, 1fr) 44px; }
+  .universe-select { height: 42px; padding-block: 7px; }
+  .universe-select b { font-size: 11px; }
+  .universe-select small { font-size: 9px; }
+  .universe-switch {
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+  .universe-switch::before {
+    content: '';
+    position: absolute;
+    width: 27px;
+    height: 15px;
+    border: 1px solid #3a4352;
+    border-radius: 999px;
+    background: #0a0d12;
+    transition: border-color .18s, background .18s, box-shadow .18s;
+  }
+  .universe-switch > span { position: relative; z-index: 1; }
+  .universe-switch.on { border-color: transparent; background: transparent; box-shadow: none; }
+  .universe-switch.on::before {
+    border-color: color-mix(in srgb, var(--accent, #dce7f5) 58%, #4d586a);
+    background: color-mix(in srgb, var(--accent, #dce7f5) 18%, #0b0e13);
+    box-shadow: 0 0 9px color-mix(in srgb, var(--accent, #dce7f5) 28%, transparent);
+  }
+  .universe-switch.mixed { border-color: transparent; background: transparent; box-shadow: none; }
+  .universe-switch.mixed::before { border-color: #78869a; background: rgba(121, 137, 158, .12); }
+  .universe-switch:hover::before { border-color: #8290a5; }
+  .filter-chips button { min-height: 42px; font-size: 10px; }
+  .filter-select-label select { height: 42px; font-size: 11px; }
+
+  .inspector {
+    position: absolute;
+    z-index: 60;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: min(88dvh, 720px);
+    max-height: calc(100% - 8px);
+    grid-column: 1;
+    grid-row: 1 / -1;
+    border-top: 1px solid #3b4657;
+    border-left: 0;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -18px 48px rgba(0, 0, 0, .62);
+  }
+  .inspector-topline { min-height: 46px; padding-inline: 16px; font-size: 9px; }
+  .inspector-topline .inspector-close { width: 42px; height: 42px; }
+  .inspector-scroll { padding: 14px 16px calc(24px + env(safe-area-inset-bottom)); }
+  .inspector-art { height: min(42vw, 230px); min-height: 150px; }
+  .inspector-logo { max-height: 70%; }
+  .inspector-meta-row b { font-size: 19px; }
+  .inspector-meta-row > div span { font-size: 11px; }
+  .release-date { font-size: 10px; }
+  .classification-grid { gap: 12px; }
+  .classification-grid small { font-size: 8px; }
+  .classification-grid b { font-size: 10px; }
+  .why-heading { min-height: 48px; font-size: 11px; }
+  .why-card > p { font-size: 10px; }
+  .connection-explanations b { font-size: 10px; }
+  .connection-explanations small { font-size: 9px; }
+  .connected-heading { font-size: 9px; }
+  .connected-universes > div { min-height: 48px; }
+  .connected-universes b { font-size: 10px; }
+  .connected-universes small { font-size: 9px; }
+
+  .inspector-reopen {
+    top: auto;
+    left: max(10px, env(safe-area-inset-left));
+    right: auto;
+    bottom: calc(66px + env(safe-area-inset-bottom));
+    width: auto;
+    min-width: 44px;
+    min-height: 44px;
+    flex-direction: row;
+    gap: 7px;
+    padding: 8px 11px;
+    border-right: 1px solid #3b4657;
+    border-radius: 8px;
+  }
+  .inspector-reopen span { writing-mode: horizontal-tb; transform: none; font-size: 8px; }
+
+  .map-bottom-controls {
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    min-height: 48px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 6px;
+  }
+  .legend { flex: 1 1 100%; justify-content: space-between; gap: 7px; }
+  .legend > span { font-size: 7px; }
+  .legend i { width: 25px; }
+  .zoom-controls { min-height: 38px; height: 38px; padding-left: 0; border-left: 0; }
+  .zoom-controls button, .zoom-controls > span { min-width: 38px; height: 36px; font-size: 9px; }
+  .zoom-controls .fit-button { min-width: 66px; margin-left: 6px; }
+  .selected-locator { right: 10px; bottom: calc(78px + env(safe-area-inset-bottom)); min-height: 38px; }
+  .minimap { right: 10px; bottom: calc(126px + env(safe-area-inset-bottom)); width: min(44vw, 170px); height: 78px; }
+}
+
+@media (max-width: 360px) {
+  .archive-name { max-width: 116px; font-size: 12px; }
+  .global-search { width: 116px; }
+  .explore-title h1 { font-size: 21px; }
+  .toolbar-toggles { gap: 5px; }
+  .toggle-control { font-size: 9px; }
+  .legend > span { font-size: 6px; }
+  .legend > span:nth-child(3) { display: none; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 900px) {
+  .app-shell { grid-template-rows: 78px minmax(0, 1fr); }
+  .top-nav { height: 78px; grid-template-rows: 46px 32px; }
+  .archive-mode-nav { height: 30px; }
+  .archive-mode-button { min-height: 24px; height: 24px; }
+  .archive-mode-button::after { font-size: 9px; }
+  .explore-toolbar { padding-block: 7px; gap: 6px; }
+  .explore-title h1 { font-size: 20px; }
+  .explore-title p, .map-mode-badge { display: none; }
+  .inspector { height: 100%; max-height: 100%; width: min(430px, 92vw); left: auto; border-radius: 12px 0 0 12px; border-top: 0; border-left: 1px solid #3b4657; }
+  .inspector-reopen { bottom: 50px; }
+  .minimap { bottom: 82px; }
+}
 @media (max-width: 1320px) {
   .workspace { grid-template-columns: 196px minmax(0, 1fr) 310px; }
   .workspace.inspector-closed { grid-template-columns: 196px minmax(0, 1fr) 0; }
@@ -921,7 +1219,66 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .release-header { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .release-header-index { display: none; }
   .release-universe-control { width: 32px; height: 32px; }
-  .release-universe-tabs { margin-top: 18px; }
-  .release-universe-tab { min-height: 35px; padding-inline: 9px; font-size: 8px; }
-  .release-groups { grid-template-columns: minmax(0, 1fr); }
+  .release-universe-tabs { margin-top: 18px; padding-inline: 0; scroll-padding-inline: 8px; }
+  .release-universe-tab { min-height: 44px; padding-inline: 11px; font-size: 8px; scroll-snap-align: start; }
+  /* Flatten the desktop stacks into one mobile reading order without
+   * mounting a second copy of every logo node. The inline order is derived
+   * from the canonical sorted phase list in ReleaseOrder.tsx. */
+  .release-groups { display: flex; flex-direction: column; gap: 12px; max-width: 1440px; margin: 0 auto; }
+  .release-group-column { display: contents; }
+  .release-group { width: 100%; order: var(--release-mobile-order); }
+  .release-title-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; }
+  .release-title-node { min-height: 88px; padding-inline: 5px; }
+}
+
+/* Keep the compact viewport rules last: the legacy short-height desktop
+   tuning above must not reintroduce a 620px minimum on a phone. */
+@media (max-width: 767px) {
+  .app-shell { min-height: 0; height: 100dvh; }
+  .workspace,
+  .workspace.sidebar-open,
+  .workspace.sidebar-closed,
+  .workspace.inspector-open,
+  .workspace.inspector-closed,
+  .workspace.sidebar-open.inspector-open,
+  .workspace.sidebar-closed.inspector-open,
+  .workspace.sidebar-open.inspector-closed,
+  .workspace.sidebar-closed.inspector-closed {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+}
+
+@media (min-width: 421px) and (max-width: 720px) {
+  .release-title-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Keep the compact rules authoritative on short phone viewports. The legacy
+   desktop height query appears earlier in this stylesheet and would otherwise
+   restore a 620px minimum and shrink the mobile map controls. */
+@media (max-width: 767px) {
+  .app-shell { min-height: 0; }
+  .workspace { grid-template-rows: auto minmax(0, 1fr) !important; }
+  .release-order { grid-column: 1; grid-row: 1 / 3; width: 100%; max-width: 100%; }
+  .map-bottom-controls { height: auto; }
+  .inspector-art { height: min(42vw, 230px); }
+}
+
+/* The compact-desktop breakpoint is declared earlier than the phone rules
+   and can otherwise widen the shell through the header's intrinsic columns. */
+@media (max-width: 767px) {
+  html, body, #root, .app-shell, .top-nav, .workspace { width: 100%; max-width: 100%; min-width: 0; }
+  .top-nav { grid-template-columns: minmax(0, 1fr) auto !important; }
+  .workspace,
+  .workspace.sidebar-open,
+  .workspace.sidebar-closed,
+  .workspace.inspector-open,
+  .workspace.inspector-closed,
+  .workspace.sidebar-open.inspector-open,
+  .workspace.sidebar-closed.inspector-open,
+  .workspace.sidebar-open.inspector-closed,
+  .workspace.sidebar-closed.inspector-closed {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .explore-toolbar, .map-panel, .map-viewport, .archive-mode-nav, .view-controls, .toolbar-toggles { width: 100%; max-width: 100%; min-width: 0; }
 }

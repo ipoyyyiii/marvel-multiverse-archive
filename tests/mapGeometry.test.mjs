@@ -27,14 +27,17 @@ const {
   MAP_UNIVERSE_ORDER,
   MAX_ZOOM,
   MIN_ZOOM,
+  OVERVIEW_ZOOM,
   NODE_HEIGHT,
   NODE_WIDTH,
   makeMapLayout,
   nodeScaleForZoom,
   routeMapConnections,
+  fitMapZoom,
+  reprojectMapPoint,
 } = geometry
 
-const zoomLevels = [MIN_ZOOM, .28, .5, .82, 1, MAX_ZOOM]
+const zoomLevels = [MIN_ZOOM, .01, .08, OVERVIEW_ZOOM, .28, .5, .82, 1, MAX_ZOOM]
 const allFormats = new Set(['Film', 'Series', 'Special', 'Short'])
 const selectedId = catalog.find((title) => title.title === 'Spider-Man: No Way Home').id
 
@@ -169,12 +172,12 @@ test('successive titles advance horizontally while alternating above and below',
   }
 })
 
-test('all logos remain legible and do not overlap at overview or detail zoom', () => {
+test('logos stay legible at Overview and never overlap, including at full-map scale', () => {
   for (const zoom of zoomLevels) {
     const layout = makeMapLayout(catalog, MAP_UNIVERSE_ORDER, zoom)
     assertFiniteLayout(layout)
     const nodes = [...layout.positions.values()]
-    assert.ok(NODE_WIDTH * nodeScaleForZoom(zoom) * zoom >= 175, `Logos are too small at ${zoom}`)
+    if (zoom >= OVERVIEW_ZOOM) assert.ok(NODE_WIDTH * nodeScaleForZoom(zoom) * zoom >= 175, `Logos are too small at ${zoom}`)
     for (let index = 0; index < nodes.length; index += 1) {
       const a = nodes[index]
       const aWidth = NODE_WIDTH * a.scale
@@ -185,6 +188,53 @@ test('all logos remain legible and do not overlap at overview or detail zoom', (
         const overlapX = Math.abs(a.x - b.x) < (aWidth + bWidth) / 2
         const overlapY = a.y < b.y + bHeight && b.y < a.y + aHeight
         assert.ok(!(overlapX && overlapY), `${a.title.id} overlaps ${b.title.id} at ${zoom}`)
+      }
+    }
+  }
+})
+
+test('below Overview, titles, spines and branches shrink together without further reflow', () => {
+  const overview = makeMapLayout(catalog, MAP_UNIVERSE_ORDER, OVERVIEW_ZOOM)
+  const overviewRoutes = routeMapConnections(connections, overview)
+  for (const zoom of [.1, .02, MIN_ZOOM]) {
+    const layout = makeMapLayout(catalog, MAP_UNIVERSE_ORDER, zoom)
+    assert.equal(layout.width, overview.width)
+    assert.equal(layout.height, overview.height)
+    assert.deepEqual(layout.positions, overview.positions)
+    assert.deepEqual(routeMapConnections(connections, layout), overviewRoutes)
+    assert.ok(layout.width * zoom < overview.width * OVERVIEW_ZOOM)
+    assert.ok(layout.height * zoom < overview.height * OVERVIEW_ZOOM)
+  }
+})
+
+test('Fit All accommodates the full archive, a single universe and curated titles on phones and desktops', () => {
+  for (const universeIds of [MAP_UNIVERSE_ORDER, ['mcu'], ['fox'], ['raimi'], []]) {
+    for (const showAll of [true, false]) {
+      const titles = selectMapTitles(catalog, connections, { universeIds, showAll, selectedId, formats: allFormats })
+      const overview = makeMapLayout(titles, universeIds, OVERVIEW_ZOOM)
+      for (const viewport of [{ width: 320, height: 400 }, { width: 390, height: 600 }, { width: 1400, height: 800 }]) {
+        const zoom = fitMapZoom(overview, viewport)
+        const layout = makeMapLayout(titles, universeIds, zoom)
+        assert.ok(layout.width * zoom <= viewport.width - 32 + .01)
+        assert.ok(layout.height * zoom <= viewport.height - 100 + .01)
+        assert.equal(layout.positions.size, overview.positions.size, 'Fitting must not hide titles')
+      }
+    }
+  }
+})
+
+test('pinch anchors follow the same title junction through readable zoom and full-map scale', () => {
+  for (const universeIds of [MAP_UNIVERSE_ORDER, ['fox']]) {
+    for (const startZoom of [.88, OVERVIEW_ZOOM, .01]) {
+      const start = makeMapLayout(catalog, universeIds, startZoom)
+      for (const endZoom of [.95, .4, .1, .01]) {
+        const end = makeMapLayout(catalog, universeIds, endZoom)
+        for (const [id, node] of start.positions) {
+          const projected = reprojectMapPoint({ x: node.x, y: node.trackY }, start, end)
+          const nextNode = end.positions.get(id)
+          assert.ok(Math.abs(projected.x - nextNode.x) < .0001, `Pinch drift in ${id} x`)
+          assert.ok(Math.abs(projected.y - nextNode.trackY) < .0001, `Pinch drift in ${id} y`)
+        }
       }
     }
   }

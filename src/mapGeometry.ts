@@ -2,7 +2,8 @@ import type { Connection, ConnectionType, MarvelTitle, UniverseId } from './data
 
 export const NODE_WIDTH = 216
 export const NODE_HEIGHT = 118
-export const MIN_ZOOM = .22
+export const MIN_ZOOM = .002
+export const OVERVIEW_ZOOM = .22
 export const MAX_ZOOM = 1.15
 
 export const MAP_UNIVERSE_ORDER: UniverseId[] = [
@@ -57,13 +58,13 @@ export interface MapRoute {
   end: MapPoint
 }
 
-const safeZoom = (zoom: number) => Number.isFinite(zoom)
+export const clampMapZoom = (zoom: number) => Number.isFinite(zoom)
   ? Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom))
   : 1
 
-/** Semantic zoom preserves readable artwork while the world retains its scale. */
+/** Below Overview, freeze spacing and artwork sizes so the whole map can shrink. */
 export const nodeScaleForZoom = (zoom: number) => {
-  const value = safeZoom(zoom)
+  const value = Math.max(OVERVIEW_ZOOM, clampMapZoom(zoom))
   return Math.max(.82, value) / value
 }
 
@@ -76,16 +77,17 @@ export function makeMapLayout(
   universeIds: UniverseId[],
   requestedZoom: number,
 ): GraphLayout {
-  const zoom = safeZoom(requestedZoom)
+  const zoom = clampMapZoom(requestedZoom)
+  const spacingZoom = Math.max(OVERVIEW_ZOOM, zoom)
   const nodeScale = nodeScaleForZoom(zoom)
-  const nodeStep = Math.max(144, 104 / zoom)
-  const laneHeight = Math.max(360, 304 / zoom)
-  const laneGap = Math.max(56, 48 / zoom)
-  const scenePadding = Math.max(90, 64 / zoom)
-  const titleInset = Math.max(92, 74 / zoom)
+  const nodeStep = Math.max(144, 104 / spacingZoom)
+  const laneHeight = Math.max(360, 304 / spacingZoom)
+  const laneGap = Math.max(56, 48 / spacingZoom)
+  const scenePadding = Math.max(90, 64 / spacingZoom)
+  const titleInset = Math.max(92, 74 / spacingZoom)
   const titleWidth = NODE_WIDTH * nodeScale
   const titleHeight = NODE_HEIGHT * nodeScale
-  const stemHeight = Math.max(30, 28 / zoom)
+  const stemHeight = Math.max(30, 28 / spacingZoom)
   const firstX = scenePadding + titleInset + titleWidth / 2
   const laneIds = [...new Set(universeIds)]
   const visibleUniverses = new Set(laneIds)
@@ -107,7 +109,7 @@ export function makeMapLayout(
   const maxTitles = Math.max(1, ...[...laneTitles.values()].map((items) => items.length))
   const width = Math.max(
     1180,
-    860 / zoom,
+    860 / spacingZoom,
     firstX + (maxTitles - 1) * nodeStep + titleWidth / 2 + titleInset + scenePadding,
   )
   const positions = new Map<string, NodePosition>()
@@ -151,11 +153,37 @@ export function makeMapLayout(
     positions,
     lanes,
     width,
-    height: lanes.length ? laneY - laneGap + scenePadding : 480 / zoom,
+    height: lanes.length ? laneY - laneGap + scenePadding : 480 / spacingZoom,
     zoom,
     nodeScale,
     nodeStep,
   }
+}
+
+/** Keep a point between the same title slots/lanes as semantic zoom reflows. */
+export function reprojectMapPoint(point: MapPoint, from: GraphLayout, to: GraphLayout): MapPoint {
+  const fromNode = from.positions.values().next().value
+  const toNode = to.positions.values().next().value
+  const fromLane = from.lanes[0]
+  const toLane = to.lanes[0]
+  const fromStride = from.lanes[1] ? from.lanes[1].trackY - fromLane.trackY : fromLane?.height
+  const toStride = to.lanes[1] ? to.lanes[1].trackY - toLane.trackY : toLane?.height
+  return {
+    x: fromNode && toNode
+      ? toNode.x + (point.x - fromNode.x) * to.nodeStep / from.nodeStep
+      : point.x * to.width / from.width,
+    y: fromLane && toLane && fromStride && toStride
+      ? toLane.trackY + (point.y - fromLane.trackY) * toStride / fromStride
+      : point.y * to.height / from.height,
+  }
+}
+
+/** Pass the Overview layout, whose world dimensions stay fixed at lower zoom. */
+export function fitMapZoom(layout: GraphLayout, viewport: { width: number; height: number }): number {
+  return clampMapZoom(Math.min(OVERVIEW_ZOOM,
+    Math.max(1, viewport.width - 32) / layout.width,
+    Math.max(1, viewport.height - 100) / layout.height,
+  ))
 }
 
 const coordinate = (value: number) => Number(value.toFixed(3))
@@ -168,8 +196,9 @@ export const routePath = ({ start, controlA, controlB, end }: Pick<MapRoute, 'st
 export function routeMapConnections(connections: Connection[], layout: GraphLayout): MapRoute[] {
   const routes: MapRoute[] = []
   const seenIds = new Set<string>()
-  const clampX = (x: number) => Math.max(32 / layout.zoom, Math.min(layout.width - 32 / layout.zoom, x))
-  const clampY = (y: number) => Math.max(24 / layout.zoom, Math.min(layout.height - 24 / layout.zoom, y))
+  const spacingZoom = Math.max(OVERVIEW_ZOOM, layout.zoom)
+  const clampX = (x: number) => Math.max(32 / spacingZoom, Math.min(layout.width - 32 / spacingZoom, x))
+  const clampY = (y: number) => Math.max(24 / spacingZoom, Math.min(layout.height - 24 / spacingZoom, y))
 
   for (const connection of [...connections].sort((a, b) => a.id.localeCompare(b.id))) {
     if (seenIds.has(connection.id)) continue
@@ -190,15 +219,15 @@ export function routeMapConnections(connections: Connection[], layout: GraphLayo
       // A separate arc makes time travel/reset visible without adding another
       // continuity rail. Other same-lane relationships can use the same shape.
       const arcDirection = seed % 2 ? -1 : 1
-      const arcHeight = (108 + slot * 12) / layout.zoom
+      const arcHeight = (108 + slot * 12) / spacingZoom
       const arcY = clampY(start.y + arcDirection * arcHeight)
       controlA = { x: start.x + deltaX * .22, y: arcY }
       controlB = { x: start.x + deltaX * .78, y: arcY }
-    } else if (Math.abs(deltaX) < 190 / layout.zoom) {
+    } else if (Math.abs(deltaX) < 190 / spacingZoom) {
       // Nearby columns need a side corridor instead of a vertical connection
       // hiding inside the title's stem and artwork.
       const direction = (start.x + end.x) / 2 < layout.width / 2 ? 1 : -1
-      const corridor = clampX((start.x + end.x) / 2 + direction * (148 + slot * 18) / layout.zoom)
+      const corridor = clampX((start.x + end.x) / 2 + direction * (148 + slot * 18) / spacingZoom)
       controlA = { x: corridor, y: start.y + deltaY * .12 }
       controlB = { x: corridor, y: end.y - deltaY * .12 }
     } else {

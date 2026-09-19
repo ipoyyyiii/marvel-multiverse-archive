@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Check,
   ChevronDown,
@@ -32,6 +32,8 @@ import { releaseOrderGroups } from './releaseGroups'
 import ChronologicalOrder, { chronologyDateLabel } from './ChronologicalOrder'
 import { chronologicalEntriesByUniverse } from './chronologyData'
 import MultiverseMap from './MultiverseMap'
+import { archiveLogoPath } from './data/logoAssets'
+import { timelineColor } from './TimelineEnergy'
 
 type UniverseFilter = UniverseId | 'all'
 type ConnectionDisplay = 'selected' | 'events' | 'all' | 'off'
@@ -178,9 +180,9 @@ function TopNavigation({
                 <span>COMPLETE ARCHIVE</span><b>{results.length ? `${results.length} BEST MATCHES` : 'NO MATCHES'}</b>
               </div>
               {results.map((title) => (
-                <button key={title.id} onMouseDown={() => { onSelect(title.id); setQuery('') }}>
+                <button key={title.id} onClick={() => { onSelect(title.id); setQuery('') }}>
                   <span className="search-result-mark" style={{ '--accent': getUniverse(title.universeId).color } as React.CSSProperties}>
-                    {title.logo ? <img src={title.logo} alt="" /> : title.title.slice(0, 1)}
+                    {title.logo ? <img src={archiveLogoPath(title.logo)} alt="" loading="lazy" decoding="async" /> : title.title.slice(0, 1)}
                   </span>
                   <span><b>{title.title}</b><small>{title.year} · {title.format} · {getUniverse(title.universeId).name}</small></span>
                   {!title.released && <em>ANNOUNCED</em>}
@@ -250,6 +252,7 @@ function ExploreToolbar({
 }
 
 function Sidebar({
+  open,
   activeUniverse,
   setActiveUniverse,
   hiddenUniverses,
@@ -260,6 +263,7 @@ function Sidebar({
   connectionFilter,
   setConnectionFilter,
 }: {
+  open: boolean
   activeUniverse: UniverseFilter
   setActiveUniverse: (id: UniverseFilter) => void
   hiddenUniverses: Set<UniverseId>
@@ -277,7 +281,7 @@ function Sidebar({
   const someUniversesVisible = hiddenUniverses.size < universes.length
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" aria-hidden={!open} inert={!open}>
       <div className="sidebar-scroll">
         <div className="sidebar-section universe-section">
           <div className="section-heading"><span>UNIVERSES</span><small>{catalogStats.universes}</small></div>
@@ -292,12 +296,14 @@ function Sidebar({
           {universes.map((universe) => (
             <div
               key={universe.id}
+              data-universe={universe.id}
+              style={{ '--accent': timelineColor(universe.id, universe.color) } as React.CSSProperties}
               className={`universe-row ${activeUniverse === universe.id ? 'active' : ''} ${hiddenUniverses.has(universe.id) ? 'off' : ''}`}
             >
               <button className="universe-select" onClick={() => setActiveUniverse(universe.id)}>
                 <b>{universe.name}</b><small>{counts[universe.id]}</small>
               </button>
-              <button className={`universe-switch ${!hiddenUniverses.has(universe.id) ? 'on' : ''}`} style={{ '--accent': universe.color } as React.CSSProperties} onClick={() => toggleUniverse(universe.id)} aria-label={`${hiddenUniverses.has(universe.id) ? 'Show' : 'Hide'} ${universe.name} timeline`} aria-pressed={!hiddenUniverses.has(universe.id)}>
+              <button className={`universe-switch ${!hiddenUniverses.has(universe.id) ? 'on' : ''}`} onClick={() => toggleUniverse(universe.id)} aria-label={`${hiddenUniverses.has(universe.id) ? 'Show' : 'Hide'} ${universe.name} timeline`} aria-pressed={!hiddenUniverses.has(universe.id)}>
                 <span />
               </button>
             </div>
@@ -387,7 +393,7 @@ function Inspector({
         <div className={`inspector-art ${title.event ? `event-${title.event}` : ''} ${title.logo ? 'has-logo' : ''}`} style={{ '--accent': universe.color } as React.CSSProperties}>
           {title.logo ? (
             <div className="inspector-logo-wrap">
-              <img className="inspector-logo" src={title.logo} alt={`${title.title} title logo`} />
+              <img className="inspector-logo" src={archiveLogoPath(title.logo)} alt={`${title.title} title logo`} decoding="async" />
             </div>
           ) : (
             <div className="inspector-wordmark-fallback"><Sparkles /><span>{title.title}</span></div>
@@ -469,8 +475,24 @@ export default function App() {
   const [hiddenUniverses, setHiddenUniverses] = useState<Set<UniverseId>>(new Set())
   const [revealToken, setRevealToken] = useState(0)
   const [inspectorOpen, setInspectorOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(() => (
+    typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches
+  ))
   const selected = catalog.find((title) => title.id === selectedId) || catalog[0]
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (inspectorOpen) {
+        setInspectorOpen(false)
+        setRevealToken((token) => token + 1)
+      } else if (sidebarOpen) {
+        setSidebarOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [inspectorOpen, sidebarOpen])
   const releaseUniverseIndex = Math.max(0, universes.findIndex((universe) => universe.id === releaseUniverseId))
   const releaseGroupsForUniverse = useMemo(() => releaseOrderGroups
     .filter((group) => group.universeId === releaseUniverseId)
@@ -510,6 +532,7 @@ export default function App() {
     }
     setSelectedId(id)
     setInspectorOpen(true)
+    if (window.matchMedia('(max-width: 767px)').matches) setSidebarOpen(false)
     setRevealToken((token) => token + 1)
   }, [activeUniverse, archiveMode, hiddenUniverses, releaseUniverseId])
 
@@ -591,7 +614,19 @@ export default function App() {
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
       />
       <main className={`workspace ${inspectorOpen ? 'inspector-open' : 'inspector-closed'} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <button
+          type="button"
+          className="mobile-scrim"
+          onClick={() => {
+            setSidebarOpen(false)
+            if (inspectorOpen) setRevealToken((token) => token + 1)
+            setInspectorOpen(false)
+          }}
+          aria-label="Close open archive panels"
+          tabIndex={-1}
+        />
         <Sidebar
+          open={sidebarOpen}
           activeUniverse={activeUniverse}
           setActiveUniverse={(id) => {
             setActiveUniverse(id)

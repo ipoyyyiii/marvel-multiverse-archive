@@ -375,26 +375,34 @@ const CHRONOLOGICAL_STYLES = `
 .chronological-entry-note { max-width: 94%; overflow: hidden; color: #8591a4; font-size: 8px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
 .chronological-empty { margin: 80px auto; color: #8995a8; text-align: center; }
 @media (max-width: 820px) {
+  .chronological-order { grid-column: 1; grid-row: 1 / 3; width: 100%; max-width: 100%; }
   .chronological-header { grid-template-columns: minmax(0,1fr); gap: 8px; padding-inline: 16px; }
   .chronological-header-index { display: none; }
   .chronological-universe-control { width: 32px; height: 32px; }
   .chronological-universe-tabs { margin-top: 18px; padding-inline: 16px; }
-  .chronological-universe-tab { min-height: 35px; padding-inline: 9px; font-size: 8px; }
+  .chronological-universe-tab { min-height: 44px; padding-inline: 11px; font-size: 8px; scroll-snap-align: start; }
   .chronological-rule { padding-inline: 16px; }
   .chronological-legend { justify-content: center; padding-inline: 16px; }
   .chronological-timeline { padding-inline: 16px; }
-  .chronological-entry { grid-template-columns: 1fr 30px; min-height: 142px; }
-  .chronological-spine-energy, .chronological-spine-flow { left: 15px; transform: translateX(-50%); }
-  .chronological-entry-left .chronological-card, .chronological-entry-right .chronological-card { grid-column: 2; margin: 0 0 0 16px; align-items: center; justify-content: flex-start; gap: 10px; text-align: left; }
+  /* Keep a slim rail for the plasma and give all readable content the
+   * remaining width. The previous 1fr/30px layout put cards in the 30px
+   * column, which made the mobile chronology collapse. */
+  .chronological-entry { grid-template-columns: 28px minmax(0, 1fr); min-height: 142px; }
+  .chronological-spine-energy, .chronological-spine-flow { left: 14px; transform: translateX(-50%); }
+  .chronological-entry-left .chronological-card, .chronological-entry-right .chronological-card { grid-column: 2; width: 100%; margin: 0 0 0 12px; align-items: center; justify-content: flex-start; gap: 10px; text-align: left; }
   .chronological-entry-left .chronological-logo-stage, .chronological-entry-right .chronological-logo-stage { order: 1; }
   .chronological-entry-left .chronological-card-content, .chronological-entry-right .chronological-card-content { order: 2; align-items: flex-start; flex-basis: 240px; }
   .chronological-entry .chronological-node { grid-column: 1; justify-self: start; }
-  .chronological-entry-left .chronological-card::after, .chronological-entry-right .chronological-card::after { left: -17px; right: auto; transform: rotate(180deg); }
-  .chronological-logo-stage { flex-basis: 102px; width: 102px; height: 64px; }
-  .chronological-logo-image, .chronological-logo-custom > * { max-width: 102px; max-height: 60px; }
+  .chronological-entry-left .chronological-card::after, .chronological-entry-right .chronological-card::after { left: -25px; right: auto; transform: rotate(180deg); }
+  .chronological-logo-stage { flex: 0 0 clamp(88px, 28vw, 102px); width: clamp(88px, 28vw, 102px); height: 64px; }
+  .chronological-logo-image, .chronological-logo-custom > * { max-width: clamp(88px, 28vw, 102px); max-height: 60px; }
   .chronological-era-header { grid-template-columns: 1fr; gap: 7px; margin: 14px 0; }
   .chronological-era-header::before, .chronological-era-header::after { display: none; }
-  .chronological-era-header > div { justify-self: start; margin-left: 0; }
+  .chronological-era-header > div { justify-self: start; margin-left: 28px; }
+  .chronological-card-topline { flex-wrap: wrap; }
+  .chronological-card-title { font-size: 11px; line-height: 1.25; white-space: normal; }
+  .chronological-entry-meta { font-size: 9px; line-height: 1.25; }
+  .chronological-entry-note { max-width: 100%; overflow: visible; font-size: 9px; line-height: 1.35; text-overflow: clip; white-space: normal; }
 }
 @media (prefers-reduced-motion: reduce) { .chronological-universe-control, .chronological-card { transition: none; } }
 `
