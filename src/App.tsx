@@ -563,7 +563,37 @@ export default function App() {
   // always treated as expanded, so its visuals never change.
   const [exploreExpanded, setExploreExpanded] = useState(true)
   const isMobileToolbar = useIsMobileToolbar()
-  const swipeStartRef = useRef<{ x: number; y: number; universe: boolean; fromLeftEdge: boolean } | null>(null)
+  // Mobile-only viewport gate for touch drawer/edge gestures. Desktop
+  // (and SSR) never runs the interactive sidebar drag.
+  const isMobileViewport = () => (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(max-width: 767px)').matches
+  )
+  // Live drawer offset while a finger drags the sidebar (px, <= 0).
+  // Null = no drag, CSS classes own the position.
+  const [sidebarDragOffset, setSidebarDragOffset] = useState<number | null>(null)
+  const sidebarDragOffsetRef = useRef<number | null>(null)
+  const sidebarTouchRef = useRef<{ x: number; time: number } | null>(null)
+  const sidebarVelocityRef = useRef(0)
+  const swipeStartRef = useRef<{
+    x: number
+    y: number
+    universe: boolean
+    fromLeftEdge: boolean
+    sidebarDrag: { startX: number; active: boolean } | null
+    universeDrag: { active: boolean } | null
+  } | null>(null)
+  // Live universe-drag state: which content element is being dragged, its
+  // width (for fade math), and the neighbor availability in each direction.
+  const universeDragRef = useRef<{
+    element: HTMLElement
+    width: number
+    hasNext: boolean
+    hasPrevious: boolean
+  } | null>(null)
+  const universeTouchRef = useRef<{ x: number; time: number } | null>(null)
+  const universeVelocityRef = useRef(0)
   const [sidebarOpen, setSidebarOpen] = useState(() => (
     typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches
   ))
@@ -698,16 +728,20 @@ export default function App() {
   }
 
   // Touch-only swipe navigation between archive views (map <-> release <->
-  // chronological). Attached to <main className="workspace"> via
-  // onTouchStart/onTouchEnd, so desktop mouse behavior is unchanged.
+  // chronological), plus an interactive sidebar drawer drag on mobile.
+  // Attached to <main className="workspace"> via onTouchStart/onTouchMove/
+  // onTouchEnd, so desktop mouse behavior is unchanged.
   const handleWorkspaceTouchStart = (event: React.TouchEvent) => {
     const target = event.target as HTMLElement | null
     if (target && typeof target.closest === 'function') {
-      // The map viewport has its own drag/pinch gestures, the inspector
-      // (and sidebar) are their own panels, and form controls must keep
-      // their native touch behavior — only bare content areas swipe views.
+      // The inspector is its own panel and form controls must keep their
+      // native touch behavior — only bare content areas swipe views.
       // Tab strips keep their native horizontal scroll/tap behavior too.
-      if (target.closest('.map-viewport, aside, input, select, textarea, button, .release-universe-tabs, .chronological-universe-tabs')) {
+      // NOTE: .map-viewport is intentionally NOT excluded here: the map's
+      // own pointer handlers treat touch as scroll/pinch natively and don't
+      // conflict with an edge/drawer drag, while the drawer NEEDS touches
+      // that start on the map (it covers the whole screen when closed).
+      if (target.closest('aside, input, select, textarea, button, .release-universe-tabs, .chronological-universe-tabs')) {
         swipeStartRef.current = null
         return
       }
@@ -725,7 +759,220 @@ export default function App() {
       if (archiveMode === 'release' && target.closest('.release-groups')) universe = true
       else if (archiveMode === 'chronological' && target.closest('.chronological-timeline')) universe = true
     }
-    swipeStartRef.current = { x: touch.clientX, y: touch.clientY, universe, fromLeftEdge: touch.clientX <= 24 }
+    // Universe gallery drag (release/chrono content): starts tracking for a
+    // live follow, claimed once the gesture is clearly horizontal. Unlike
+    // the drawer, this starts anywhere on the content — not just the edge.
+    const universeDrag = universe && isMobileViewport()
+      ? { active: false }
+      : null
+    // Sidebar drawer drag: starts on the open drawer (tracks finger for an
+    // interactive close) or at the left screen edge (tracks for an open).
+    // Swipes starting on the open sidebar's own scroll/buttons keep native
+    // behavior — the drag only claims horizontal gestures.
+    const onSidebar = Boolean(target && typeof target.closest === 'function' && target.closest('aside.sidebar') && sidebarOpen)
+    swipeStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      universe,
+      fromLeftEdge: touch.clientX <= 24,
+      sidebarDrag: onSidebar || touch.clientX <= 24 ? { startX: touch.clientX, active: false } : null,
+      universeDrag,
+    }
+  }
+
+  const handleWorkspaceTouchMove = (event: React.TouchEvent) => {
+    const start = swipeStartRef.current
+    if (!start || !isMobileViewport()) return
+    // A live drag re-renders every touchmove — that's the point of an
+    // interactive drawer. Bail out of React's synthetic batching by writing
+    // straight to the DOM; state only settles at touch-end. Fall back to
+    // the native event because React 19 nulls synthetic touches after the
+    // handler yields (mid-drag reads would see length 0).
+    const nativeTouches: ArrayLike<{ clientX: number; clientY: number }> | undefined =
+      event.nativeEvent?.touches ?? event.touches
+    if (!nativeTouches || nativeTouches.length !== 1) return
+    const touch = nativeTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    // Universe gallery drag runs before the drawer: content areas are never
+    // a drawer origin, so the two never compete for one gesture.
+    if (start.universeDrag && !start.sidebarDrag?.active) {
+      if (!start.universeDrag.active) {
+        if (Math.abs(dx) <= 12 || Math.abs(dx) <= 2 * Math.abs(dy)) return
+        const element = (event.currentTarget as HTMLElement | null)
+          ?.querySelector('.release-groups, .chronological-timeline') as HTMLElement | null
+        if (!element) { start.universeDrag = null; return }
+        const hasNext = archiveMode === 'release'
+          ? releaseUniverseIndex < universes.length - 1
+          : chronologicalUniverseIndex < CHRONOLOGICAL_UNIVERSES.length - 1
+        const hasPrevious = archiveMode === 'release'
+          ? releaseUniverseIndex > 0
+          : chronologicalUniverseIndex > 0
+        // Dead-end direction: don't claim, let the old snap logic decide.
+        if ((dx < 0 && !hasNext) || (dx > 0 && !hasPrevious)) { start.universeDrag = null; return }
+        start.universeDrag.active = true
+        universeDragRef.current = {
+          element,
+          width: Math.max(1, element.getBoundingClientRect().width),
+          hasNext,
+          hasPrevious,
+        }
+      }
+      const drag = universeDragRef.current
+      if (!drag) return
+      // Rubber-band past the dead end instead of a hard stop.
+      const clamped = (dx < 0 && !drag.hasNext) || (dx > 0 && !drag.hasPrevious)
+        ? dx * .25
+        : dx
+      const progress = Math.min(1, Math.abs(clamped) / drag.width)
+      drag.element.style.transition = 'none'
+      drag.element.style.transform = `translateX(${clamped}px)`
+      drag.element.style.opacity = `${1 - progress * .45}`
+      const now = performance.now()
+      const previous = universeTouchRef.current
+      if (previous) {
+        const dt = Math.max(1, now - previous.time)
+        universeVelocityRef.current = (touch.clientX - previous.x) / dt
+      }
+      universeTouchRef.current = { x: touch.clientX, time: now }
+      swipeStartRef.current = start
+      return
+    }
+    if (!start.sidebarDrag) return
+    // Claim the gesture once it's clearly horizontal; vertical scrolling
+    // (including the sidebar's own scroll) is never hijacked.
+    if (!start.sidebarDrag.active) {
+      if (Math.abs(dx) <= 12 || Math.abs(dx) <= 2 * Math.abs(dy)) return
+      // Edge swipes only open, drawer swipes only close — wrong-direction
+      // drags stay native.
+      if (sidebarOpen && dx >= 0) { start.sidebarDrag.active = false; return }
+      if (!sidebarOpen && dx <= 0) { start.sidebarDrag.active = false; return }
+      start.sidebarDrag.active = true
+    }
+    // Follow the finger: drawer width capped at the CSS min(86vw, 326px).
+    const width = Math.min(window.innerWidth * .86, 326)
+    const offset = sidebarOpen ? Math.min(0, dx) : Math.max(-width, Math.min(0, dx - width))
+    const now = performance.now()
+    const previous = sidebarTouchRef.current
+    if (previous) {
+      const dt = Math.max(1, now - previous.time)
+      sidebarVelocityRef.current = (touch.clientX - previous.x) / dt
+    }
+    sidebarTouchRef.current = { x: touch.clientX, time: now }
+    sidebarDragOffsetRef.current = offset
+    const workspace = (event.currentTarget as HTMLElement | null) || document.querySelector('main.workspace')
+    const sidebar = workspace?.querySelector('aside.sidebar') as HTMLElement | null
+    if (sidebar) {
+      sidebar.style.transition = 'none'
+      sidebar.style.opacity = '1'
+      ;(sidebar.style as CSSStyleDeclaration & { pointerEvents: string }).pointerEvents = 'auto'
+      sidebar.style.transform = `translateX(${offset}px)`
+    }
+    if (workspace) {
+      workspace.classList.add('sidebar-dragging')
+      workspace.style.setProperty('--sidebar-drag-x', `${offset}px`)
+    }
+    // Keep React's settle logic in sync without re-rendering mid-drag.
+    swipeStartRef.current = start
+  }
+
+  const endSidebarDrag = (dx: number) => {
+    // Fling (fast swipe) always wins; otherwise release past halfway.
+    const width = Math.min(window.innerWidth * .86, 326)
+    const fling = Math.abs(sidebarVelocityRef.current) > .45
+    if (sidebarOpen) {
+      if ((fling && dx < 0) || dx < -width / 2) setSidebarOpen(false)
+    } else if ((fling && dx > 0) || dx > width / 2) {
+      setSidebarOpen(true)
+    }
+    // Clear inline drag styles so CSS classes own the settle animation.
+    const sidebar = document.querySelector('main.workspace aside.sidebar') as HTMLElement | null
+    if (sidebar) {
+      sidebar.style.transition = ''
+      sidebar.style.opacity = ''
+      ;(sidebar.style as CSSStyleDeclaration & { pointerEvents: string }).pointerEvents = ''
+      sidebar.style.transform = ''
+    }
+    document.querySelector('main.workspace')?.classList.remove('sidebar-dragging')
+    sidebarDragOffsetRef.current = null
+    sidebarTouchRef.current = null
+    sidebarVelocityRef.current = 0
+    setSidebarDragOffset(null)
+  }
+
+  const cancelSidebarDragStyles = () => {
+    const sidebar = document.querySelector('main.workspace aside.sidebar') as HTMLElement | null
+    if (sidebar) {
+      sidebar.style.transition = ''
+      sidebar.style.opacity = ''
+      ;(sidebar.style as CSSStyleDeclaration & { pointerEvents: string }).pointerEvents = ''
+      sidebar.style.transform = ''
+    }
+    document.querySelector('main.workspace')?.classList.remove('sidebar-dragging')
+    sidebarDragOffsetRef.current = null
+    sidebarTouchRef.current = null
+    sidebarVelocityRef.current = 0
+    setSidebarDragOffset(null)
+  }
+
+  const settleUniverseDrag = (dx: number) => {
+    const drag = universeDragRef.current
+    universeDragRef.current = null
+    universeTouchRef.current = null
+    if (!drag) return
+    // Fling wins; otherwise commit past ~22% of the content width so a
+    // deliberate swipe doesn't demand a full-width drag on a phone.
+    const fling = Math.abs(universeVelocityRef.current) > .45
+    const commit = fling || Math.abs(dx) > drag.width * .22
+    universeVelocityRef.current = 0
+    const direction = dx < 0 ? 1 : -1
+    const canGo = direction === 1 ? drag.hasNext : drag.hasPrevious
+    if (commit && canGo) {
+      // Slide out + fade, swap universe under cover, slide back in.
+      const outX = direction === 1 ? -drag.width * .35 : drag.width * .35
+      drag.element.style.transition = 'transform .16s ease-out, opacity .16s ease-out'
+      drag.element.style.transform = `translateX(${outX}px)`
+      drag.element.style.opacity = '0'
+      window.setTimeout(() => {
+        if (archiveMode === 'release') {
+          if (direction === 1) nextReleaseUniverse()
+          else previousReleaseUniverse()
+        } else {
+          stepChronologicalUniverse(direction as 1 | -1)
+        }
+        // Next universe enters from the swipe side on the following frame.
+        requestAnimationFrame(() => {
+          const next = document.querySelector('main.workspace .release-groups, main.workspace .chronological-timeline') as HTMLElement | null
+          if (!next) return
+          const fromX = direction === 1 ? drag.width * .35 : -drag.width * .35
+          next.style.transition = 'none'
+          next.style.transform = `translateX(${fromX}px)`
+          next.style.opacity = '0'
+          requestAnimationFrame(() => {
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            next.style.transition = reduced ? 'none' : 'transform .22s ease-out, opacity .22s ease-out'
+            next.style.transform = 'translateX(0)'
+            next.style.opacity = '1'
+            window.setTimeout(() => {
+              next.style.transition = ''
+              next.style.transform = ''
+              next.style.opacity = ''
+            }, reduced ? 0 : 240)
+          })
+        })
+      }, 160)
+      return
+    }
+    // Bounce back: spring home with the settle transition.
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    drag.element.style.transition = reduced ? 'none' : 'transform .22s ease-out, opacity .22s ease-out'
+    drag.element.style.transform = 'translateX(0)'
+    drag.element.style.opacity = '1'
+    window.setTimeout(() => {
+      drag.element.style.transition = ''
+      drag.element.style.transform = ''
+      drag.element.style.opacity = ''
+    }, reduced ? 0 : 240)
   }
 
   const handleWorkspaceTouchEnd = (event: React.TouchEvent) => {
@@ -736,6 +983,30 @@ export default function App() {
     if (!touch) return
     const dx = touch.clientX - start.x
     const dy = touch.clientY - start.y
+    // A live universe drag already followed the finger — settle it and skip
+    // every snap path below.
+    if (start.universeDrag?.active) {
+      if (isMobileViewport()) settleUniverseDrag(dx)
+      else {
+        const drag = universeDragRef.current
+        universeDragRef.current = null
+        if (drag) {
+          drag.element.style.transition = ''
+          drag.element.style.transform = ''
+          drag.element.style.opacity = ''
+        }
+      }
+      cancelSidebarDragStyles()
+      return
+    }
+    // An interactive drawer drag already moved the sidebar live — just
+    // settle it (fling or past-halfway) instead of running swipe logic.
+    if (start.sidebarDrag?.active) {
+      if (isMobileViewport()) endSidebarDrag(dx)
+      else cancelSidebarDragStyles()
+      return
+    }
+    cancelSidebarDragStyles()
     // Swipe from the left screen edge rightwards opens the sidebar.
     // Runs before view/universe swipes; uses a shorter distance so the
     // drawer feels responsive. Map gestures, open sidebar, and form
@@ -744,10 +1015,11 @@ export default function App() {
       setSidebarOpen(true)
       return
     }
-    // Horizontal swipes only: vertical scrolling is never hijacked.
+    // Horizontal swipes only: vertical scrolling is never hijacked. (Live
+    // universe drags already settled above; this is the no-drag fallback.)
     if (Math.abs(dx) <= 80 || Math.abs(dx) <= 2.5 * Math.abs(dy)) return
     const direction = dx < 0 ? 1 : -1
-    if (start.universe) {
+    if (start.universe && !start.universeDrag) {
       // Swipe left = next universe, swipe right = previous universe.
       // No wrapping, for consistency with view swipes.
       if (archiveMode === 'release') {
@@ -828,7 +1100,7 @@ export default function App() {
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
       />
-      <main className={`workspace ${inspectorOpen ? 'inspector-open' : 'inspector-closed'} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`} onTouchStart={handleWorkspaceTouchStart} onTouchEnd={handleWorkspaceTouchEnd}>
+      <main className={`workspace ${inspectorOpen ? 'inspector-open' : 'inspector-closed'} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}${sidebarDragOffset !== null ? ' sidebar-dragging' : ''}`} onTouchStart={handleWorkspaceTouchStart} onTouchMove={handleWorkspaceTouchMove} onTouchEnd={handleWorkspaceTouchEnd} style={sidebarDragOffset !== null ? ({ '--sidebar-drag-x': `${sidebarDragOffset}px` } as React.CSSProperties) : undefined}>
         <button
           type="button"
           className="mobile-scrim"

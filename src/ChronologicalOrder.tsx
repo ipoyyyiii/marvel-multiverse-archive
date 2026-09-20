@@ -310,7 +310,7 @@ const CHRONOLOGICAL_STYLES = `
 .chronological-rule i { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--chronological-accent); box-shadow: 0 0 15px color-mix(in srgb, var(--chronological-accent) 72%, transparent); }
 .chronological-legend { display: flex; justify-content: flex-end; gap: 9px; padding: 0 clamp(20px, 4vw, 64px); color: #778398; font: 700 8px/1 "Barlow Condensed", sans-serif; letter-spacing: .8px; }
 .chronological-legend b { color: #cfd7e4; font-weight: 700; }
-.chronological-timeline { position: relative; max-width: 1240px; margin: 18px auto 0; padding: 0 clamp(20px, 4vw, 64px) 70px; }
+.chronological-timeline { position: relative; max-width: 1240px; margin: 18px auto 0; padding: 0 clamp(20px, 4vw, 64px) 70px; will-change: transform, opacity; }
 .chronological-spine-energy {
   position: absolute;
   z-index: 0;
@@ -406,9 +406,9 @@ const CHRONOLOGICAL_STYLES = `
   .chronological-logo-image, .chronological-logo-custom > * { width: 100%; max-width: 100%; max-height: 40px; }
   .chronological-card-topline { max-width: 100%; }
   .chronological-card-title { max-width: 100%; overflow-wrap: anywhere; }
-  .chronological-era-header { grid-template-columns: 1fr; gap: 7px; margin: 14px 0; }
-  .chronological-era-header::before, .chronological-era-header::after { display: none; }
-  .chronological-era-header > div { justify-self: start; margin-left: 28px; }
+  .chronological-era-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; min-height: 56px; margin: 14px 0; }
+  .chronological-era-header::before, .chronological-era-header::after { display: block; content: ''; height: 1px; }
+  .chronological-era-header > div { justify-self: center; margin-left: 0; min-width: 0; padding: 6px 12px; }
   .chronological-card-topline { flex-wrap: wrap; }
   .chronological-card-title { font-size: 11px; line-height: 1.25; white-space: normal; }
   .chronological-entry-meta { font-size: 9px; line-height: 1.25; }

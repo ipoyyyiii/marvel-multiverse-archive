@@ -712,71 +712,30 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
   .top-nav {
     height: 98px;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: 56px 42px;
     gap: 0 8px;
     padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
   }
-  .brand-lockup { min-width: 0; overflow: hidden; }
-  .sidebar-toggle { width: 40px; height: 40px; flex: 0 0 40px; margin-right: 5px; }
-  .marvel-mark { height: 30px; padding-inline: 6px; font-size: 22px; }
-  .brand-divider { height: 23px; margin-inline: 7px; }
-  .archive-name { overflow: hidden; text-overflow: ellipsis; font-size: 14px; letter-spacing: .75px; }
+  /* Brand lockup is fixed-size on mobile: hamburger (44px) + MARVEL mark.
+   * The archive name/divider never render here, so focus state can't shift
+   * anything — search always gets the same remaining track. */
+  .brand-lockup { min-width: 0; overflow: hidden; flex: 0 0 auto; }
+  .sidebar-toggle { width: 44px; height: 44px; flex: 0 0 44px; margin-right: 5px; }
+  .marvel-mark { height: 30px; padding-inline: 6px; font-size: 22px; flex: 0 0 auto; }
+  .brand-divider, .archive-name { display: none; }
 
-  .nav-actions { min-width: 0; gap: 0; }
+  .nav-actions { min-width: 0; gap: 0; grid-column: 2; }
   .global-search {
-    width: clamp(116px, 39vw, 180px);
+    width: 100%;
     min-width: 0;
-    height: 40px;
+    height: 44px;
     gap: 7px;
     padding-inline: 10px;
+    flex: 1 1 auto;
   }
   .global-search input { min-width: 0; font-size: 16px; }
   .global-search input::placeholder { text-overflow: ellipsis; }
-  /* Mobile focus expansion keeps the hamburger + MARVEL mark always
-     visible: only the archive name/divider yield space, the toggle stays
-     >=44px tappable, and search flexes in the remaining track. */
-  .top-nav:focus-within,
-  .top-nav:has(.global-search.focused) {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-  .top-nav:focus-within .brand-lockup,
-  .top-nav:has(.global-search.focused) .brand-lockup {
-    display: flex;
-    visibility: visible;
-  }
-  .top-nav:focus-within .brand-divider,
-  .top-nav:has(.global-search.focused) .brand-divider,
-  .top-nav:focus-within .archive-name,
-  .top-nav:has(.global-search.focused) .archive-name {
-    display: none;
-  }
-  .top-nav:focus-within .sidebar-toggle,
-  .top-nav:has(.global-search.focused) .sidebar-toggle {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
-  }
-  .top-nav:focus-within .marvel-mark,
-  .top-nav:has(.global-search.focused) .marvel-mark {
-    display: inline-flex;
-    flex: 0 0 auto;
-  }
-  .top-nav:focus-within .nav-actions,
-  .top-nav:has(.global-search.focused) .nav-actions {
-    grid-column: 2;
-    grid-row: 1;
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-  .top-nav:focus-within .global-search,
-  .global-search.focused,
-  .global-search:focus-within {
-    width: 100%;
-    flex: 1 1 auto;
-    min-width: 0;
-    height: 44px;
-  }
   .archive-count { display: none; }
   .search-results {
     position: fixed;
@@ -890,6 +849,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     pointer-events: auto;
     transform: translateX(0);
   }
+  /* Interactive drawer drag: the sidebar follows the finger live. While
+   * dragging the spring transition is off and the scrim stays hidden, so
+   * the drawer feels attached to the touch. */
+  .workspace.sidebar-dragging .sidebar {
+    transition: none;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(var(--sidebar-drag-x, 0px));
+  }
+  .workspace.sidebar-dragging .mobile-scrim { display: none; }
   .workspace.inspector-open .sidebar {
     opacity: 0;
     pointer-events: none;
@@ -1204,6 +1173,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   gap: 12px;
   max-width: 1440px;
   margin: 0 auto;
+  /* Interactive universe drag writes translateX/opacity inline during the
+   * gesture; keep it GPU-cheap and touch-smooth. */
+  will-change: transform, opacity;
 }
 .release-groups[data-column-count="1"] { grid-template-columns: minmax(0, 1fr); }
 .release-group-column { min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
@@ -1231,8 +1203,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .release-group-rule { height: 1px; margin: 0 12px; background: linear-gradient(90deg, color-mix(in srgb, var(--release-group-accent) 60%, transparent), transparent 76%); opacity: .55; }
 .release-title-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(106px, 1fr)); align-items: start; gap: 5px; padding: 8px; }
 /* Single-title groups center their lone node instead of left-aligning it.
- * Base rule (not inside a media query) so it holds on desktop and mobile. */
+ * Base rule (not inside a media query) so it holds on desktop and mobile.
+ * justify-content alone can't center a lone grid item (it sizes the whole
+ * track), so the single node also spans the full row. */
 .release-title-grid[data-single="true"] { justify-content: center; }
+.release-title-grid[data-single="true"] > .release-title-node { grid-column: 1 / -1; justify-self: center; width: min(100%, 220px); }
 .release-title-node {
   min-width: 0;
   min-height: 86px;
