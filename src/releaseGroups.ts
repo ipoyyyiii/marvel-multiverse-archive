@@ -61,7 +61,6 @@ const nonMcuSpecs: Record<string, ReleaseGroupSpec> = {
   'sony:sony-noir': { id: 'sony-noir-cycle', label: 'Sony Spider-Man · Noir Cycle', kind: 'cycle', universeId: 'sony', startYear: 2026, endYear: 2026 },
   'marvel-tv:marvel-tv-mutant-x': { id: 'marvel-tv-mutant-x-era', label: 'Marvel Television · Mutant X Era', kind: 'era', universeId: 'marvel-tv', startYear: 2001, endYear: 2003 },
   'marvel-tv:marvel-tv-shield': { id: 'marvel-tv-shield-cycle', label: 'Marvel Television · S.H.I.E.L.D. Cycle', kind: 'cycle', universeId: 'marvel-tv', startYear: 2013, endYear: 2016 },
-  'marvel-tv:marvel-tv-agent-carter': { id: 'marvel-tv-agent-carter-cycle', label: 'Marvel Television · Agent Carter Cycle', kind: 'cycle', universeId: 'marvel-tv', startYear: 2015, endYear: 2015 },
   'marvel-tv:marvel-tv-fox': { id: 'marvel-tv-fox-mutant-era', label: 'Marvel Television · FX Mutant Era', kind: 'era', universeId: 'marvel-tv', startYear: 2017, endYear: 2017 },
   'marvel-tv:marvel-tv-inhumans': { id: 'marvel-tv-inhumans-cycle', label: 'Marvel Television · Inhumans Cycle', kind: 'cycle', universeId: 'marvel-tv', startYear: 2017, endYear: 2017 },
   'marvel-tv:marvel-tv-young': { id: 'marvel-tv-young-heroes-cycle', label: 'Marvel Television · Young Heroes Cycle', kind: 'cycle', universeId: 'marvel-tv', startYear: 2017, endYear: 2018 },
@@ -91,7 +90,7 @@ const animationSpecs: Record<string, ReleaseGroupSpec> = {
   'Modern animated series': { id: 'animation-modern-era', label: 'Marvel Animation · Modern Era', kind: 'era', universeId: 'animation' },
   'Marvel Anime': { id: 'animation-anime-cycle', label: 'Marvel Animation · Anime Cycle', kind: 'cycle', universeId: 'animation' },
   'Animated features and specials': { id: 'animation-features-specials', label: 'Marvel Animation · Features & Specials', kind: 'era', universeId: 'animation' },
-  'Spider-Verse films': { id: 'spider-verse-film-cycle', label: 'Spider-Verse · Film Cycle', kind: 'cycle', universeId: 'animation' },
+  'Spider-Verse films': { id: 'spider-verse-film-cycle', label: 'Marvel Animation · Spider-Verse', kind: 'cycle', universeId: 'animation' },
   'Marvel Rising universe': { id: 'marvel-rising-cycle', label: 'Marvel Rising · Film & Special Cycle', kind: 'cycle', universeId: 'animation' },
 }
 
@@ -140,15 +139,21 @@ const rangeFor = (spec: ReleaseGroupSpec, titles: MarvelTitle[]): [number, numbe
 }
 
 /**
- * Build the release-order index used by the archive. Announced records are
- * excluded, while each released title remains a separate entry and is sorted
+ * Build the release-order index used by the archive. Released titles are
+ * included by default; callers can opt into announced records with
+ * `{ includeUnreleased: true }`. Each title remains a separate entry sorted
  * by its exact ISO release date within both the flat list and its group.
  */
-export const buildReleaseOrderMap = (titles: readonly MarvelTitle[] = catalog): ReleaseOrderMap => {
-  const releasedTitles = titles.filter((title) => title.released).sort(sortByReleaseDate)
+export interface ReleaseOrderOptions {
+  /** The page defaults to released titles; opt in to announced records when needed. */
+  includeUnreleased?: boolean
+}
+
+export const buildReleaseOrderMap = (titles: readonly MarvelTitle[] = catalog, options: ReleaseOrderOptions = {}): ReleaseOrderMap => {
+  const sourceTitles = (options.includeUnreleased ? [...titles] : titles.filter((title) => title.released)).sort(sortByReleaseDate)
   const grouped = new Map<string, { spec: ReleaseGroupSpec; titles: MarvelTitle[] }>()
 
-  for (const title of releasedTitles) {
+  for (const title of sourceTitles) {
     const spec = getReleaseGroupSpec(title)
     const current = grouped.get(spec.id)
     if (current) current.titles.push(title)
@@ -171,7 +176,7 @@ export const buildReleaseOrderMap = (titles: readonly MarvelTitle[] = catalog): 
     .sort((a, b) => sortByReleaseDate(a.titles[0], b.titles[0]) || a.id.localeCompare(b.id))
 
   const groupIds = new Map(groups.map((group) => [group.id, group.id]))
-  const entries = releasedTitles.map((title, index) => {
+  const entries = sourceTitles.map((title, index) => {
     const groupId = getReleaseGroupSpec(title).id
     if (!groupIds.has(groupId)) throw new Error(`Release group missing from map: ${groupId}`)
     return { index, title, groupId }
@@ -180,6 +185,6 @@ export const buildReleaseOrderMap = (titles: readonly MarvelTitle[] = catalog): 
   return { groups, entries }
 }
 
-export const releaseOrderMap = buildReleaseOrderMap()
+export const releaseOrderMap = buildReleaseOrderMap(catalog, { includeUnreleased: true })
 export const releaseOrderGroups = releaseOrderMap.groups
 export const releaseOrderEntries = releaseOrderMap.entries

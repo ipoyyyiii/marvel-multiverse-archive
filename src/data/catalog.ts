@@ -1,4 +1,5 @@
 import { logoManifest } from './logoManifest'
+import { synopses } from './synopses'
 
 export type UniverseId =
   | 'mcu'
@@ -45,6 +46,8 @@ export interface MarvelTitle {
   event?: 'crossover' | 'hub' | 'future'
   released: boolean
   summary?: string
+  /** One-to-two sentence plot synopsis (TMDB overview), shown in the inspector. */
+  synopsis?: string
 }
 
 export type ConnectionType = 'direct-sequel' | 'crossover' | 'multiverse' | 'time-travel' | 'timeline-reset'
@@ -115,6 +118,18 @@ const posterByTitle: Record<string, string> = {
 // wordmark fallback rendered by TitleNode.
 const logoByTitle: Record<string, string> = logoManifest
 
+// Same-titled records in different continuities share a universe:title key, so
+// films that need distinct artwork are overridden here by catalog id.
+const logoById: Record<string, string> = {
+  'legacy-captain-america-1944': '/assets/logos/legacy-captain-america-1944.png',
+  'legacy-captain-america-1979': '/assets/logos/legacy-captain-america-1979.png',
+  'legacy-captain-america-1990': '/assets/logos/legacy-captain-america-1990.png',
+  'legacy-fantastic-four-2005': '/assets/logos/legacy-fantastic-four-2005.png',
+  'legacy-fantastic-four-2015': '/assets/logos/legacy-fantastic-four-2015.png',
+  'legacy-the-punisher-1989': '/assets/logos/legacy-the-punisher-1989.png',
+  'legacy-the-punisher-2004': '/assets/logos/legacy-the-punisher-2004.png',
+}
+
 const featuredTitles = new Set([
   'Iron Man', 'The Avengers', 'Avengers: Endgame', 'Spider-Man: Far From Home',
   'Spider-Man: No Way Home', 'Doctor Strange in the Multiverse of Madness',
@@ -168,11 +183,11 @@ const addGroup = (
 const mcuFilms = addGroup('mcu', 'Marvel Studios main continuity', 'confirmed', 'Earth-616', [
   ['Iron Man', '2008-05-02', 'Film', undefined, 'mcu-films', 2010],
   ['The Incredible Hulk', '2008-06-13', 'Film', undefined, 'mcu-films', 2010],
-  ['Iron Man 2', '2010-05-07', 'Film', undefined, 'mcu-films', 2011],
+  ['Iron Man 2', '2010-05-07', 'Film', undefined, 'mcu-films', 2010],
   ['Thor', '2011-05-06', 'Film', undefined, 'mcu-films', 2011],
   ['Captain America: The First Avenger', '2011-07-22', 'Film', undefined, 'mcu-films', 1943],
   ['The Avengers', '2012-05-04', 'Film', undefined, 'mcu-films', 2012],
-  ['Iron Man 3', '2013-05-03', 'Film', undefined, 'mcu-films', 2012],
+  ['Iron Man 3', '2013-05-03', 'Film', undefined, 'mcu-films', 2013],
   ['Thor: The Dark World', '2013-11-08', 'Film', undefined, 'mcu-films', 2013],
   ['Captain America: The Winter Soldier', '2014-04-04', 'Film', undefined, 'mcu-films', 2014],
   ['Guardians of the Galaxy', '2014-08-01', 'Film', undefined, 'mcu-films', 2014],
@@ -202,16 +217,16 @@ const mcuFilms = addGroup('mcu', 'Marvel Studios main continuity', 'confirmed', 
   ['Deadpool & Wolverine', '2024-07-26', 'Film', undefined, 'mcu-crossovers', 2024],
   ['Captain America: Brave New World', '2025-02-14', 'Film', undefined, 'mcu-films', 2027],
   ['Thunderbolts*', '2025-05-02', 'Film', undefined, 'mcu-films', 2027],
-  ['The Fantastic Four: First Steps', '2025-07-25', 'Film', undefined, 'mcu-alt-films', 1964],
+  ['The Fantastic Four: First Steps', '2025-07-25', 'Film', undefined, 'mcu-alt-films', 2027],
   ['Spider-Man: Brand New Day', '2026-07-31', 'Film', undefined, 'mcu-films', 2027],
 ])
 
 const mcuSeries = addGroup('mcu', 'Marvel Studios television and specials', 'confirmed', 'Earth-616', [
   ['The Consultant', '2011-09-13', 'Short', undefined, 'mcu-one-shots', 2011],
-  ['A Funny Thing Happened on the Way to Thor’s Hammer', '2011-10-25', 'Short', undefined, 'mcu-one-shots', 2011],
+  ['A Funny Thing Happened on the Way to Thor’s Hammer', '2011-10-25', 'Short', undefined, 'mcu-one-shots', 2010],
   ['Item 47', '2012-09-25', 'Short', undefined, 'mcu-one-shots', 2012],
   ['Agent Carter', '2013-09-03', 'Short', undefined, 'mcu-one-shots', 1946],
-  ['All Hail the King', '2014-02-04', 'Short', undefined, 'mcu-one-shots', 2014],
+  ['All Hail the King', '2014-02-04', 'Short', undefined, 'mcu-one-shots', 2013],
   ['WHIH Newsfront', '2015-07-02', 'Short', 2, 'mcu-web', 2015],
   ['Team Thor', '2016-08-28', 'Short', undefined, 'mcu-shorts', 2016],
   ['Team Thor: Part 2', '2017-02-14', 'Short', undefined, 'mcu-shorts', 2016],
@@ -219,8 +234,9 @@ const mcuSeries = addGroup('mcu', 'Marvel Studios television and specials', 'con
   ['Peter’s To-Do List', '2019-10-01', 'Short', undefined, 'mcu-shorts', 2024],
   ['The Daily Bugle', '2019-10-23', 'Short', 3, 'mcu-web', 2024],
   ['WandaVision', '2021-01-15', 'Series', 1, 'mcu-series', 2023],
+  ['Agent Carter', '2015-01-06', 'Series', 2, 'mcu-series', 1946],
   ['The Falcon and the Winter Soldier', '2021-03-19', 'Series', 1, 'mcu-series', 2024],
-  ['Loki', '2021-06-09', 'Series', 2, 'mcu-tva', 2012],
+  ['Loki', '2021-06-09', 'Series', 2, 'mcu-tva', 2023],
   ['Hawkeye', '2021-11-24', 'Series', 1, 'mcu-series', 2024],
   ['Moon Knight', '2022-03-30', 'Series', 1, 'mcu-series', 2025],
   ['Ms. Marvel', '2022-06-08', 'Series', 1, 'mcu-series', 2025],
@@ -233,46 +249,49 @@ const mcuSeries = addGroup('mcu', 'Marvel Studios television and specials', 'con
   ['Agatha All Along', '2024-09-18', 'Series', 1, 'mcu-series', 2026],
   ['Daredevil: Born Again', '2025-03-04', 'Series', 2, 'mcu-defenders-revival', 2026],
   ['Ironheart', '2025-06-24', 'Series', 1, 'mcu-series', 2025],
-  ['Eyes of Wakanda', '2025-08-01', 'Series', 1, 'mcu-animation'],
+  ['Eyes of Wakanda', '2025-08-01', 'Series', 1, 'mcu-animation', 1942],
   ['Wonder Man', '2026-01-27', 'Series', 1, 'mcu-series', 2027],
   ['Daredevil: Born Again — Season 2', '2026-03-24', 'Series', 1, 'mcu-defenders-revival', 2027],
   ['The Punisher: One Last Kill', '2026-05-12', 'Special', undefined, 'mcu-defenders-revival', 2027],
 ])
 
 const fox = addGroup('fox', 'Fox X-Men film continuity', 'disputed', 'Earth-10005', [
-  ['X-Men', '2000-07-14', 'Film', undefined, 'fox-original'],
-  ['X2: X-Men United', '2003-05-02', 'Film', undefined, 'fox-original'],
-  ['X-Men: The Last Stand', '2006-05-26', 'Film', undefined, 'fox-original'],
-  ['X-Men Origins: Wolverine', '2009-05-01', 'Film', undefined, 'fox-wolverine-origin'],
-  ['X-Men: First Class', '2011-06-03', 'Film', undefined, 'fox-revised'],
-  ['The Wolverine', '2013-07-26', 'Film', undefined, 'fox-original'],
-  ['X-Men: Days of Future Past', '2014-05-23', 'Film', undefined, 'fox-revised'],
-  ['Deadpool', '2016-02-12', 'Film', undefined, 'fox-deadpool'],
-  ['X-Men: Apocalypse', '2016-05-27', 'Film', undefined, 'fox-revised'],
-  ['Logan', '2017-03-03', 'Film', undefined, 'fox-logan-future'],
-  ['Deadpool 2', '2018-05-18', 'Film', undefined, 'fox-deadpool'],
-  ['Dark Phoenix', '2019-06-07', 'Film', undefined, 'fox-revised'],
-  ['The New Mutants', '2020-08-28', 'Film', undefined, 'fox-new-mutants'],
+  // Story years from Fox tie-in chronologies + consensus guides. The DoFP
+  // 1973 divergence splits original (erased) from revised (canonical) lines;
+  // DoFP's 2023 future frames the bridge entry itself (see note below).
+  ['X-Men: First Class', '2011-06-03', 'Film', undefined, 'fox-revised', 1962],
+  ['X-Men Origins: Wolverine', '2009-05-01', 'Film', undefined, 'fox-wolverine-origin', 1979],
+  ['X-Men', '2000-07-14', 'Film', undefined, 'fox-original', 2004],
+  ['X2: X-Men United', '2003-05-02', 'Film', undefined, 'fox-original', 2004],
+  ['X-Men: The Last Stand', '2006-05-26', 'Film', undefined, 'fox-original', 2006],
+  ['The Wolverine', '2013-07-26', 'Film', undefined, 'fox-original', 2013],
+  ['X-Men: Days of Future Past', '2014-05-23', 'Film', undefined, 'fox-revised', 1973],
+  ['X-Men: Apocalypse', '2016-05-27', 'Film', undefined, 'fox-revised', 1983],
+  ['Dark Phoenix', '2019-06-07', 'Film', undefined, 'fox-revised', 1992],
+  ['Deadpool', '2016-02-12', 'Film', undefined, 'fox-deadpool', 2016],
+  ['Deadpool 2', '2018-05-18', 'Film', undefined, 'fox-deadpool', 2018],
+  ['The New Mutants', '2020-08-28', 'Film', undefined, 'fox-new-mutants', 2020],
+  ['Logan', '2017-03-03', 'Film', undefined, 'fox-logan-future', 2029],
 ])
 
 const raimi = addGroup('raimi', 'Raimi trilogy', 'confirmed', 'Earth-96283', [
-  ['Spider-Man', '2002-05-03', 'Film', undefined, 'raimi-trilogy'],
-  ['Spider-Man 2', '2004-06-30', 'Film', undefined, 'raimi-trilogy'],
-  ['Spider-Man 3', '2007-05-04', 'Film', undefined, 'raimi-trilogy'],
+  ['Spider-Man', '2002-05-03', 'Film', undefined, 'raimi-trilogy', 2002],
+  ['Spider-Man 2', '2004-06-30', 'Film', undefined, 'raimi-trilogy', 2004],
+  ['Spider-Man 3', '2007-05-04', 'Film', undefined, 'raimi-trilogy', 2007],
 ])
 
 const amazing = addGroup('amazing', 'Amazing Spider-Man films', 'confirmed', 'Earth-120703', [
-  ['The Amazing Spider-Man', '2012-07-03', 'Film', undefined, 'amazing-duology'],
-  ['The Amazing Spider-Man 2', '2014-05-02', 'Film', undefined, 'amazing-duology'],
+  ['The Amazing Spider-Man', '2012-07-03', 'Film', undefined, 'amazing-duology', 2012],
+  ['The Amazing Spider-Man 2', '2014-05-02', 'Film', undefined, 'amazing-duology', 2014],
 ])
 
 const sony = addGroup('sony', 'Sony live-action continuity', 'disputed', undefined, [
-  ['Venom', '2018-10-05', 'Film', undefined, 'venom-series'],
-  ['Venom: Let There Be Carnage', '2021-10-01', 'Film', undefined, 'venom-series'],
-  ['Morbius', '2022-04-01', 'Film', undefined, 'sony-morbius'],
-  ['Madame Web', '2024-02-14', 'Film', undefined, 'sony-madame-web'],
-  ['Venom: The Last Dance', '2024-10-25', 'Film', undefined, 'venom-series'],
-  ['Kraven the Hunter', '2024-12-13', 'Film', undefined, 'sony-kraven'],
+  ['Madame Web', '2024-02-14', 'Film', undefined, 'sony-madame-web', 2003],
+  ['Venom', '2018-10-05', 'Film', undefined, 'venom-series', 2018],
+  ['Venom: Let There Be Carnage', '2021-10-01', 'Film', undefined, 'venom-series', 2021],
+  ['Morbius', '2022-04-01', 'Film', undefined, 'sony-morbius', 2022],
+  ['Venom: The Last Dance', '2024-10-25', 'Film', undefined, 'venom-series', 2024],
+  ['Kraven the Hunter', '2024-12-13', 'Film', undefined, 'sony-kraven', 2024],
 ])
 
 const legacy = [
@@ -332,18 +351,22 @@ const legacy = [
   ]),
 ]
 
-const marvelTv = addGroup('marvel-tv', 'Marvel Television / adjacent continuities', 'disputed', undefined, [
-  ['Mutant X', '2001-10-06', 'Series', 3, 'marvel-tv-mutant-x'],
-  ['Agents of S.H.I.E.L.D.', '2013-09-24', 'Series', 7, 'marvel-tv-shield'],
-  ['Agent Carter', '2015-01-06', 'Series', 2, 'marvel-tv-agent-carter'],
-  ['Agents of S.H.I.E.L.D.: Slingshot', '2016-12-13', 'Short', 1, 'marvel-tv-shield'],
-  ['Legion', '2017-02-08', 'Series', 3, 'marvel-tv-fox'],
-  ['Inhumans', '2017-09-29', 'Series', 1, 'marvel-tv-inhumans'],
-  ['The Gifted', '2017-10-02', 'Series', 2, 'marvel-tv-fox'],
-  ['Runaways', '2017-11-21', 'Series', 3, 'marvel-tv-young'],
-  ['Cloak & Dagger', '2018-06-07', 'Series', 2, 'marvel-tv-young'],
-  ['Helstrom', '2020-10-16', 'Series', 1, 'marvel-tv-helstrom'],
-])
+const marvelTv = [
+  ...addGroup('marvel-tv', 'Marvel Television / adjacent continuities', 'disputed', undefined, [
+    ['Mutant X', '2001-10-06', 'Series', 3, 'marvel-tv-mutant-x'],
+    ['Agents of S.H.I.E.L.D.', '2013-09-24', 'Series', 7, 'marvel-tv-shield'],
+    ['Agents of S.H.I.E.L.D.: Slingshot', '2016-12-13', 'Short', 1, 'marvel-tv-shield'],
+    ['Legion', '2017-02-08', 'Series', 3, 'marvel-tv-fox'],
+    ['The Gifted', '2017-10-02', 'Series', 2, 'marvel-tv-fox'],
+    ['Runaways', '2017-11-21', 'Series', 3, 'marvel-tv-young'],
+    ['Cloak & Dagger', '2018-06-07', 'Series', 2, 'marvel-tv-young'],
+    ['Helstrom', '2020-10-16', 'Series', 1, 'marvel-tv-helstrom'],
+  ]),
+  // Ignored by every later production: kept for orientation, not continuity.
+  ...addGroup('marvel-tv', 'Marvel Television / adjacent continuities', 'separate', undefined, [
+    ['Inhumans', '2017-09-29', 'Series', 1, 'marvel-tv-inhumans'],
+  ]),
+]
 
 const defenders = addGroup('defenders', 'Defenders Saga', 'mcu-adjacent', 'Earth-616', [
   ['Daredevil', '2015-04-10', 'Series', 3, 'defenders-saga'],
@@ -462,19 +485,19 @@ const alternate = addGroup('alternate', 'Marvel Studios alternate realities', 'a
 ])
 
 const sonyAlternate = addGroup('sony', 'Sony alternate live-action reality', 'alternate', undefined, [
-  ['Spider-Noir', '2026-05-25', 'Series', 1, 'sony-noir'],
+  ['Spider-Noir', '2026-05-25', 'Series', 1, 'sony-noir', 1933],
 ])
 
 const futureEvents = [
   ...addGroup('mcu', 'Future convergence event', 'confirmed', 'Multiple realities', [
-    ['Avengers: Doomsday', '2026-12-18', 'Film', undefined, 'future-convergence'],
+    ['Avengers: Doomsday', '2026-12-18', 'Film', undefined, 'future-convergence', 2027],
     ['Avengers: Secret Wars', '2027-12-17', 'Film', undefined, 'future-convergence'],
   ], false),
-  ...addGroup('animation', 'Announced Spider-Verse continuation', 'alternate', 'Connected Spider-Verse worlds', [
+  ...addGroup('animation', 'Spider-Verse films', 'alternate', 'Connected Spider-Verse worlds', [
     ['Spider-Man: Beyond the Spider-Verse', '2027-06-18', 'Film', undefined, 'spider-verse-films'],
   ], false),
   ...addGroup('mcu', 'Announced Marvel Television', 'confirmed', 'Earth-616', [
-    ['VisionQuest', '2026-10-14', 'Series', 1, 'mcu-series'],
+    ['VisionQuest', '2026-10-14', 'Series', 1, 'mcu-series', 2026],
   ], false),
 ]
 
@@ -515,6 +538,7 @@ export const catalog: MarvelTitle[] = [
       : undefined
   return {
     ...title,
+    logo: logoById[title.id] ?? title.logo,
     track: title.universeId === 'animation' && !sharedAnimationTracks.has(title.track)
       ? `${title.track}:${title.id}`
       : title.track,
@@ -530,6 +554,7 @@ export const catalog: MarvelTitle[] = [
             : title.viewUniverseIds,
     event,
     summary,
+    synopsis: synopses[title.id],
   }
 })
 
@@ -573,7 +598,6 @@ export const connections: Connection[] = [
   connect('falcon-bravenewworld', 'mcu', 'The Falcon and the Winter Soldier', 'mcu', 'Captain America: Brave New World', 'direct-sequel', 'Sam Wilson’s acceptance of the Captain America mantle continues into Brave New World.'),
   connect('wakanda-ironheart', 'mcu', 'Black Panther: Wakanda Forever', 'mcu', 'Ironheart', 'direct-sequel', 'Riri Williams’s Wakandan introduction precedes her return to Chicago in Ironheart.'),
   connect('captainmarvel-marvels', 'mcu', 'Captain Marvel', 'mcu', 'The Marvels', 'crossover', 'Carol Danvers returns as one of the three linked heroes at the center of The Marvels.'),
-  connect('wandavision-marvels', 'mcu', 'WandaVision', 'mcu', 'The Marvels', 'crossover', 'Monica Rambeau’s transformed powers and S.W.O.R.D. story from WandaVision continue in The Marvels.'),
   connect('msmarvel-marvels', 'mcu', 'Ms. Marvel', 'mcu', 'The Marvels', 'crossover', 'Kamala Khan’s bangle and admiration for Captain Marvel lead directly into the three-hero convergence.'),
   connect('cloak-runaways', 'marvel-tv', 'Cloak & Dagger', 'marvel-tv', 'Runaways', 'crossover', 'Tandy and Tyrone cross into the third season of Runaways; this is a supported television crossover, not a claim that every Marvel Television show shares one Earth.'),
   connect('raimi-1-2', 'raimi', 'Spider-Man', 'raimi', 'Spider-Man 2', 'direct-sequel', 'Peter Parker’s story continues in the same Raimi continuity.'),
@@ -605,7 +629,8 @@ export const connections: Connection[] = [
   connect('spiderverse-beyond', 'animation', 'Spider-Man: Across the Spider-Verse', 'animation', 'Spider-Man: Beyond the Spider-Verse', 'direct-sequel', 'Beyond the Spider-Verse is the announced continuation of the unresolved Across the Spider-Verse story.'),
   connect('xmen92-xmen97', 'animation', 'X-Men: The Animated Series', 'animation', 'X-Men ’97', 'direct-sequel', 'X-Men ’97 revives and directly continues the 1990s animated continuity.'),
   connect('ff-doomsday', 'mcu', 'The Fantastic Four: First Steps', 'mcu', 'Avengers: Doomsday', 'multiverse', 'Marvel has confirmed that the Fantastic Four return in Doomsday, where worlds collide.'),
-  connect('dpw-doomsday', 'mcu', 'Deadpool & Wolverine', 'mcu', 'Avengers: Doomsday', 'multiverse', 'The future convergence follows the MCU’s expanding contact with Fox-era mutant realities; the precise story link remains unreleased.'),
+  connect('thunderbolts-doomsday', 'mcu', 'Thunderbolts*', 'mcu', 'Avengers: Doomsday', 'multiverse', 'The Thunderbolts* post-credit scene shows the Fantastic Four ship entering Earth-616 airspace — the first on-screen tease of the Doomsday convergence.'),
+  connect('bnw-doomsday', 'mcu', 'Captain America: Brave New World', 'mcu', 'Avengers: Doomsday', 'multiverse', 'Brave New World establishes the adamantium arms race over the Celestial Island — the resource conflict positioned as setup for the Doomsday convergence.'),
   connect('doomsday-secretwars', 'mcu', 'Avengers: Doomsday', 'mcu', 'Avengers: Secret Wars', 'direct-sequel', 'Secret Wars is positioned as the next announced Avengers convergence after Doomsday.'),
 ]
 

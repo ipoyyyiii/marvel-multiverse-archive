@@ -8,8 +8,12 @@ const manifestPath = join(root, 'src/data/logoManifest.ts')
 const outputDir = join(root, 'public/assets/logos/release')
 
 const manifest = await readFile(manifestPath, 'utf8')
-const sourcePaths = [...manifest.matchAll(/: "(\/assets\/logos\/[^\"]+)"/g)]
-  .map((match) => match[1])
+const catalog = await readFile(join(root, 'src/data/catalog.ts'), 'utf8')
+const sourcePaths = [
+  ...manifest.matchAll(/: "(\/assets\/logos\/[^\"]+)"/g),
+  // Per-record overrides in catalog.ts (logoById) use single quotes.
+  ...catalog.matchAll(/['"](\/assets\/logos\/[^'"]+)['"]/g),
+].map((match) => match[1])
 const uniquePaths = [...new Set(sourcePaths)]
 
 await mkdir(outputDir, { recursive: true })
@@ -23,9 +27,10 @@ for (const publicPath of uniquePaths) {
 
   try {
     await access(source)
-    // Release cards render at roughly 150–220 CSS px. 640px leaves room for
-    // high-DPI displays without shipping multi-megapixel artwork to the grid.
-    execFileSync('sips', ['-s', 'format', 'png', '-Z', '640', source, '--out', target], { stdio: 'ignore' })
+    // Release cards render at roughly 150–220 CSS px and map nodes at ~200px.
+    // 480px leaves room for high-DPI displays without shipping multi-megapixel
+    // artwork to the grid.
+    execFileSync('sips', ['-s', 'format', 'png', '-Z', '480', source, '--out', target], { stdio: 'ignore' })
     prepared += 1
   } catch {
     skipped += 1

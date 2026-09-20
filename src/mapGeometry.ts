@@ -196,6 +196,8 @@ export const routePath = ({ start, controlA, controlB, end }: Pick<MapRoute, 'st
 export function routeMapConnections(connections: Connection[], layout: GraphLayout): MapRoute[] {
   const routes: MapRoute[] = []
   const seenIds = new Set<string>()
+  const fanFrom = new Map<string, number>()
+  const fanTo = new Map<string, number>()
   const spacingZoom = Math.max(OVERVIEW_ZOOM, layout.zoom)
   const clampX = (x: number) => Math.max(32 / spacingZoom, Math.min(layout.width - 32 / spacingZoom, x))
   const clampY = (y: number) => Math.max(24 / spacingZoom, Math.min(layout.height - 24 / spacingZoom, y))
@@ -216,8 +218,11 @@ export function routeMapConnections(connections: Connection[], layout: GraphLayo
     let controlB: MapPoint
 
     if (from.spineKey === to.spineKey) {
-      // A separate arc makes time travel/reset visible without adding another
-      // continuity rail. Other same-lane relationships can use the same shape.
+      // Same-lane continuations ride the spine itself: the lane order already
+      // tells that story, so drawing a parallel curve only adds spaghetti.
+      // Only time travel/reset gets a visible arc — the one case where the
+      // relationship is NOT "the next slot on this lane".
+      if (connection.type !== 'time-travel' && connection.type !== 'timeline-reset') continue
       const arcDirection = seed % 2 ? -1 : 1
       const arcHeight = (108 + slot * 12) / spacingZoom
       const arcY = clampY(start.y + arcDirection * arcHeight)
@@ -233,8 +238,16 @@ export function routeMapConnections(connections: Connection[], layout: GraphLayo
     } else {
       // A horizontal tangent grows from each title's exact junction on the
       // spine, then bends through the space between universe lanes.
-      controlA = { x: clampX(start.x + deltaX * (.29 + slot * .025)), y: start.y }
-      controlB = { x: clampX(end.x - deltaX * (.29 + slot * .025)), y: end.y }
+      // Fans sharing one endpoint (e.g. every NWH or D&W link) each get
+      // their own lateral offset so overlapping curves separate instead of
+      // sitting on top of each other.
+      const fanA = fanFrom.get(connection.from) ?? 0
+      fanFrom.set(connection.from, fanA + 1)
+      const fanB = fanTo.get(connection.to) ?? 0
+      fanTo.set(connection.to, fanB + 1)
+      const fanSpread = 30 / spacingZoom
+      controlA = { x: clampX(start.x + deltaX * (.29 + slot * .025) + fanA * fanSpread), y: start.y }
+      controlB = { x: clampX(end.x - deltaX * (.29 + slot * .025) - fanB * fanSpread), y: end.y }
     }
 
     const geometry = { start, controlA, controlB, end }

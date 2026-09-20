@@ -9,7 +9,7 @@
 .plasma-spine .plasma-fractal-fine { opacity: .8; }
 .plasma-spine line { stroke-linecap: round; }
 
-.energy-branch.plasma-branch { opacity: .68; }
+.energy-branch.plasma-branch { opacity: .38; }
 .energy-branch.plasma-branch.highlighted { opacity: 1; }
 .plasma-branch path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .plasma-branch .plasma-branch-envelope { opacity: .055; }

@@ -2,7 +2,7 @@
  * Every catalog logo has a bounded raster derivative prepared under
  * `public/assets/logos/release`. The same derivative is safe for release
  * cards, the map, search results, and the inspector: those surfaces never
- * render a logo larger than the 640px preparation limit.
+ * render a logo larger than the 480px preparation limit.
  *
  * Keeping this choice in one helper is important. A new logo should not
  * accidentally make the map decode a multi-megapixel source image again.

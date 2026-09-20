@@ -16,6 +16,12 @@ async function importTypeScript(relativePath) {
     const literal = manifestSource.match(/export const logoManifest[^=]*= (\{[\s\S]*?\n\})/)?.[1] || '{}'
     source = source.replace(/import \{ logoManifest \} from '\.\/logoManifest'\s*/g, `const logoManifest = ${literal}\n`)
   }
+  if (source.includes("from './synopses'")) {
+    const synopsesUrl = new URL('../src/data/synopses.ts', import.meta.url)
+    const synopsesSource = await readFile(synopsesUrl, 'utf8')
+    const literal = synopsesSource.match(/export const synopses[^=]*= (\{[\s\S]*?\n\})/)?.[1] || '{}'
+    source = source.replace(/import \{ synopses \} from '\.\/synopses'\s*/g, `const synopses = ${literal}\n`)
+  }
   const { code } = await transformWithOxc(source, url.pathname)
   return import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`)
 }

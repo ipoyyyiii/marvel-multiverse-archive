@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  BookOpenText,
   Check,
   ChevronDown,
   ChevronRight,
@@ -25,6 +26,7 @@ import {
   type ConnectionType,
   type MarvelTitle,
   type TitleFormat,
+  type Universe,
   type UniverseId,
 } from './data/catalog'
 import ReleaseOrder from './ReleaseOrder'
@@ -39,6 +41,8 @@ type UniverseFilter = UniverseId | 'all'
 type ConnectionDisplay = 'selected' | 'events' | 'all' | 'off'
 type ArchiveMode = 'map' | 'release' | 'chronological'
 
+const ARCHIVE_MODE_ORDER: ArchiveMode[] = ['map', 'release', 'chronological']
+
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
 })
@@ -49,6 +53,13 @@ const formatDate = (date: string) => {
 }
 
 const getUniverse = (id: UniverseId) => universes.find((universe) => universe.id === id)!
+
+/** Chronological view only lists single-continuity film universes. TV,
+ *  animation, and alternate buckets mix unrelated continuities, so a shared
+ *  "chronology" there would be fiction. Nothing else uses this list. */
+const CHRONOLOGICAL_UNIVERSES: Universe[] = universes.filter((universe) =>
+  ['mcu', 'fox', 'raimi', 'amazing', 'sony'].includes(universe.id),
+)
 
 const belongsToUniverseView = (title: MarvelTitle, universeId: UniverseId) => (
   title.universeId === universeId || Boolean(title.viewUniverseIds?.includes(universeId))
@@ -216,6 +227,8 @@ function ExploreToolbar({
   setShowAll,
   focus,
   setFocus,
+  roadToDoomsday,
+  setRoadToDoomsday,
 }: {
   connectionDisplay: ConnectionDisplay
   setConnectionDisplay: (value: ConnectionDisplay) => void
@@ -223,6 +236,8 @@ function ExploreToolbar({
   setShowAll: (value: boolean) => void
   focus: boolean
   setFocus: (value: boolean) => void
+  roadToDoomsday: boolean
+  setRoadToDoomsday: (value: boolean) => void
 }) {
   return (
     <section className="explore-toolbar">
@@ -245,6 +260,7 @@ function ExploreToolbar({
           </label>
           <Toggle checked={showAll} onChange={() => setShowAll(!showAll)} label="Show All Titles" />
           <Toggle checked={focus} onChange={() => setFocus(!focus)} label="Focus on Selected Universe" />
+          <Toggle checked={roadToDoomsday} onChange={() => setRoadToDoomsday(!roadToDoomsday)} label="Road to Doomsday" />
         </div>
       </div>
     </section>
@@ -419,6 +435,11 @@ function Inspector({
           <div><small>RELATIONSHIPS</small><b>{titleConnections.length} explained links</b></div>
         </div>
 
+        <div className="synopsis-heading"><span><BookOpenText size={14} /> Synopsis</span></div>
+        <div className="why-card synopsis-card">
+          <p>{title.synopsis || 'Synopsis coming soon — run scripts/fetch-synopses.mjs to fill this in.'}</p>
+        </div>
+
         <button className="why-heading" onClick={() => setShowWhy(!showWhy)}>
           <span><Sparkles size={14} /> Why is this connected?</span>{showWhy ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
         </button>
@@ -468,6 +489,7 @@ export default function App() {
   const [connectionDisplay, setConnectionDisplay] = useState<ConnectionDisplay>('all')
   const [showAll, setShowAll] = useState(true)
   const [focus, setFocus] = useState(false)
+  const [roadToDoomsday, setRoadToDoomsday] = useState(false)
   const [activeUniverse, setActiveUniverse] = useState<UniverseFilter>('all')
   const [query, setQuery] = useState('')
   const [formatFilters, setFormatFilters] = useState<Set<TitleFormat>>(new Set(['Film', 'Series', 'Special', 'Short']))
@@ -475,6 +497,8 @@ export default function App() {
   const [hiddenUniverses, setHiddenUniverses] = useState<Set<UniverseId>>(new Set())
   const [revealToken, setRevealToken] = useState(0)
   const [inspectorOpen, setInspectorOpen] = useState(false)
+  const [reopenHidden, setReopenHidden] = useState(false)
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(() => (
     typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches
   ))
@@ -493,16 +517,52 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [inspectorOpen, sidebarOpen])
+
+  // Mobile only: auto-hide the floating OPEN INSPECTOR button while
+  // scrolling, then reveal it ~600ms after scroll settles. Desktop is
+  // untouched; reduced-motion keeps the button always visible.
+  useEffect(() => {
+    if (inspectorOpen) {
+      setReopenHidden(false)
+      return
+    }
+    const mobileQuery = window.matchMedia('(max-width: 767px)')
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let settleTimer: number | undefined
+    const onScroll = () => {
+      if (!mobileQuery.matches || motionQuery.matches) return
+      setReopenHidden(true)
+      window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(() => setReopenHidden(false), 600)
+    }
+    const onViewportChange = () => {
+      if (!mobileQuery.matches || motionQuery.matches) setReopenHidden(false)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true })
+    if (typeof mobileQuery.addEventListener === 'function') {
+      mobileQuery.addEventListener('change', onViewportChange)
+      motionQuery.addEventListener('change', onViewportChange)
+    }
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true })
+      window.clearTimeout(settleTimer)
+      if (typeof mobileQuery.removeEventListener === 'function') {
+        mobileQuery.removeEventListener('change', onViewportChange)
+        motionQuery.removeEventListener('change', onViewportChange)
+      }
+    }
+  }, [inspectorOpen])
   const releaseUniverseIndex = Math.max(0, universes.findIndex((universe) => universe.id === releaseUniverseId))
   const releaseGroupsForUniverse = useMemo(() => releaseOrderGroups
     .filter((group) => group.universeId === releaseUniverseId)
     .map((group) => ({
       id: group.id,
-      label: group.universeId === 'mcu' ? group.label.replace('MCU · ', '').toUpperCase() : group.label.toUpperCase(),
+      label: group.label.replace(/^.*? · /, '').toUpperCase(),
       subtitle: `${group.startYear}–${group.endYear} · RELEASE ORDER`,
       accent: getUniverse(group.universeId).color,
       titles: group.titles,
     })), [releaseUniverseId])
+  const chronologicalUniverseIndex = Math.max(0, CHRONOLOGICAL_UNIVERSES.findIndex((universe) => universe.id === releaseUniverseId))
   const chronologicalEntriesForUniverse = useMemo(() => (chronologicalEntriesByUniverse[releaseUniverseId] || []).map((entry) => ({
     title: entry.title,
     dateLabel: chronologyDateLabel(entry.title),
@@ -526,7 +586,10 @@ export default function App() {
     const revealUniverse = activeUniverse !== 'all' && belongsToUniverseView(title, activeUniverse)
       ? activeUniverse
       : title.universeId
-    if ((archiveMode === 'release' || archiveMode === 'chronological') && title.universeId !== releaseUniverseId) setReleaseUniverseId(title.universeId)
+    if (archiveMode === 'chronological') {
+      if (!CHRONOLOGICAL_UNIVERSES.some((universe) => universe.id === title.universeId)) setReleaseUniverseId('mcu')
+      else if (title.universeId !== releaseUniverseId) setReleaseUniverseId(title.universeId)
+    } else if (archiveMode === 'release' && title.universeId !== releaseUniverseId) setReleaseUniverseId(title.universeId)
     if (hiddenUniverses.has(revealUniverse)) {
       const next = new Set(hiddenUniverses); next.delete(revealUniverse); setHiddenUniverses(next)
     }
@@ -554,9 +617,59 @@ export default function App() {
     changeReleaseUniverse(universes[nextIndex].id)
   }
 
+  // Chronological tabs cycle only the 5 single-continuity film universes;
+  // release tabs keep cycling all 10. Shared on purpose, scoped by mode.
+  const stepChronologicalUniverse = (direction: 1 | -1) => {
+    const nextIndex = (chronologicalUniverseIndex + direction + CHRONOLOGICAL_UNIVERSES.length) % CHRONOLOGICAL_UNIVERSES.length
+    changeReleaseUniverse(CHRONOLOGICAL_UNIVERSES[nextIndex].id)
+  }
+
   const changeArchiveMode = (mode: ArchiveMode) => {
     setArchiveMode(mode)
     if (mode !== 'map') setInspectorOpen(false)
+    if (mode === 'chronological' && !CHRONOLOGICAL_UNIVERSES.some((universe) => universe.id === releaseUniverseId)) {
+      setReleaseUniverseId('mcu')
+    }
+  }
+
+  // Touch-only swipe navigation between archive views (map <-> release <->
+  // chronological). Attached to <main className="workspace"> via
+  // onTouchStart/onTouchEnd, so desktop mouse behavior is unchanged.
+  const handleWorkspaceTouchStart = (event: React.TouchEvent) => {
+    const target = event.target as HTMLElement | null
+    if (target && typeof target.closest === 'function') {
+      // The map viewport has its own drag/pinch gestures, the inspector
+      // (and sidebar) are their own panels, and form controls must keep
+      // their native touch behavior — only bare content areas swipe views.
+      if (target.closest('.map-viewport, aside, input, select, textarea, button')) {
+        swipeStartRef.current = null
+        return
+      }
+    }
+    if (event.touches.length !== 1) {
+      swipeStartRef.current = null
+      return
+    }
+    const touch = event.touches[0]
+    swipeStartRef.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  const handleWorkspaceTouchEnd = (event: React.TouchEvent) => {
+    const start = swipeStartRef.current
+    swipeStartRef.current = null
+    if (!start) return
+    const touch = event.changedTouches[0]
+    if (!touch) return
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    // Horizontal swipes only: vertical scrolling is never hijacked.
+    if (Math.abs(dx) <= 80 || Math.abs(dx) <= 2.5 * Math.abs(dy)) return
+    const index = ARCHIVE_MODE_ORDER.indexOf(archiveMode)
+    // Swipe left = next view, swipe right = previous view. No wrapping:
+    // map is first, chronological is last.
+    const nextIndex = index + (dx < 0 ? 1 : -1)
+    if (nextIndex < 0 || nextIndex >= ARCHIVE_MODE_ORDER.length) return
+    changeArchiveMode(ARCHIVE_MODE_ORDER[nextIndex])
   }
 
   const toggleFormat = (format: TitleFormat) => {
@@ -592,9 +705,11 @@ export default function App() {
     />
   ) : (
     <button
-      className="inspector-reopen"
+      className={`inspector-reopen${reopenHidden ? ' inspector-reopen-hidden' : ''}`}
       onClick={() => { setInspectorOpen(true); setRevealToken((token) => token + 1) }}
       aria-label={`Open title inspector for ${selected.title}`}
+      aria-hidden={reopenHidden || undefined}
+      tabIndex={reopenHidden ? -1 : undefined}
       title={`Open ${selected.title} details`}
     >
       <PanelRightOpen size={16} />
@@ -613,7 +728,7 @@ export default function App() {
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
       />
-      <main className={`workspace ${inspectorOpen ? 'inspector-open' : 'inspector-closed'} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      <main className={`workspace ${inspectorOpen ? 'inspector-open' : 'inspector-closed'} ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`} onTouchStart={handleWorkspaceTouchStart} onTouchEnd={handleWorkspaceTouchEnd}>
         <button
           type="button"
           className="mobile-scrim"
@@ -653,18 +768,20 @@ export default function App() {
             onPreviousUniverse={previousReleaseUniverse}
             onNextUniverse={nextReleaseUniverse}
             selectedId={selected.id}
+            selectionActive={inspectorOpen}
             onSelectTitle={selectAndReveal}
           />
         ) : archiveMode === 'chronological' ? (
           <ChronologicalOrder
             universeId={releaseUniverseId}
             entries={chronologicalEntriesForUniverse}
-            universeOptions={universes}
-            universeIndex={releaseUniverseIndex}
+            universeOptions={CHRONOLOGICAL_UNIVERSES}
+            universeIndex={chronologicalUniverseIndex}
             onUniverseChange={changeReleaseUniverse}
-            onPreviousUniverse={previousReleaseUniverse}
-            onNextUniverse={nextReleaseUniverse}
+            onPreviousUniverse={() => stepChronologicalUniverse(-1)}
+            onNextUniverse={() => stepChronologicalUniverse(1)}
             selectedId={selected.id}
+            selectionActive={inspectorOpen}
             onSelectTitle={selectAndReveal}
           />
         ) : (
@@ -676,6 +793,8 @@ export default function App() {
               setShowAll={setShowAll}
               focus={focus}
               setFocus={setFocus}
+              roadToDoomsday={roadToDoomsday}
+              setRoadToDoomsday={setRoadToDoomsday}
             />
             <MultiverseMap
               selectedId={selected.id}
@@ -683,6 +802,7 @@ export default function App() {
               onSelect={selectAndReveal}
               connectionDisplay={connectionDisplay}
               showAll={showAll}
+              roadToDoomsday={roadToDoomsday}
               activeUniverse={activeUniverse}
               focus={focus}
               formatFilters={formatFilters}

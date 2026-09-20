@@ -1,4 +1,4 @@
-import { memo, useRef, type PointerEvent } from 'react'
+import { memo, useEffect, useRef, useState, type PointerEvent } from 'react'
 import { universes } from './data/catalog'
 import { routePath, type GraphLayout, type MapPoint, type MapRoute } from './mapGeometry'
 import './mapMinimap.css'
@@ -53,6 +53,25 @@ const MinimapStaticGeometry = memo(function MinimapStaticGeometry({
 export default function MapMinimap({ layout, routes, viewport, onNavigate, selectedId }: MapMinimapProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const dragging = useRef(false)
+  const [expanded, setExpanded] = useState(true)
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 767px)').matches
+      : false,
+  )
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia('(max-width: 767px)')
+    const sync = () => {
+      setIsMobile(query.matches)
+      setExpanded(!query.matches)
+    }
+    sync()
+    query.addEventListener('change', sync)
+    return () => query.removeEventListener('change', sync)
+  }, [])
+  const collapsed = isMobile && !expanded
   const scaleX = (WIDTH - PADDING_X * 2) / Math.max(layout.width, 1)
   const scaleY = (HEIGHT - PADDING_Y * 2) / Math.max(layout.height, 1)
   const selected = selectedId ? layout.positions.get(selectedId) : undefined
@@ -76,8 +95,24 @@ export default function MapMinimap({ layout, routes, viewport, onNavigate, selec
   }
 
   return (
-    <aside className="archive-minimap" aria-label="Multiverse map overview">
-      <div className="archive-minimap-heading"><span>MAP OVERVIEW</span><span>{layout.lanes.length} UNIVERSES</span></div>
+    <aside className={`archive-minimap${collapsed ? ' is-collapsed' : ''}`} aria-label="Multiverse map overview">
+      {isMobile ? (
+        <button
+          type="button"
+          className="archive-minimap-toggle"
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Collapse map overview' : 'Expand map overview'}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <span>MAP OVERVIEW</span>
+          <span>{layout.lanes.length} UNIVERSES</span>
+          <span className="archive-minimap-chevron" aria-hidden="true" />
+        </button>
+      ) : (
+        <div className="archive-minimap-heading"><span>MAP OVERVIEW</span><span>{layout.lanes.length} UNIVERSES</span></div>
+      )}
+      {!collapsed && (
+      <>
       <svg
         ref={svgRef}
         className="archive-minimap-canvas"
@@ -119,6 +154,8 @@ export default function MapMinimap({ layout, routes, viewport, onNavigate, selec
         {selected && <circle className="archive-minimap-selected" cx={point({ x: selected.x, y: selected.trackY }).x} cy={point({ x: selected.x, y: selected.trackY }).y} r="3" />}
       </svg>
       <div className="archive-minimap-hint">CLICK OR DRAG TO NAVIGATE</div>
+      </>
+      )}
     </aside>
   )
 }

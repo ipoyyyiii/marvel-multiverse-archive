@@ -30,7 +30,7 @@
 .plasma-map .map-title:hover { filter: none; }
 .plasma-map .map-title:focus-visible { outline: 2px solid #ed1d35; outline-offset: 5px; }
 .plasma-map .map-title .node-art { flex: 0 0 58px; width: 100%; height: 58px; }
-.plasma-map .map-title .node-logo { width: 94%; max-height: 58px; filter: none; }
+.plasma-map .map-title .node-logo { width: 94%; height: 54px; max-height: none; object-fit: contain; object-position: center; filter: none; }
 .plasma-map .map-title:hover .node-logo { opacity: .86; }
 .plasma-map .map-title .node-wordmark { padding: 4px 0; font: italic 800 23px/1.05 "Barlow Condensed", sans-serif; text-shadow: 0 2px 3px #000; }
 .plasma-map .map-title .node-wordmark.long { font-size: 18px; line-height: 1.05; }

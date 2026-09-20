@@ -55,8 +55,81 @@ export interface ChronologicalOrderOptions {
 
 const universeOrder = new Map(universes.map((universe, index) => [universe.id, index]))
 
+/**
+ * Disney+ Complete Timeline order (June 2026) for MCU records, used as the
+ * final tie-breaker when story years collide. Story years stay honest — this
+ * only decides the order inside a shared year, exactly where a single year
+ * cannot express Marvel's own sequence (e.g. Thor: The Dark World before
+ * Iron Man 3, Ant-Man and the Wasp before Infinity War).
+ */
+const mcuTimelineOrder: readonly string[] = [
+  'mcu-eyes-of-wakanda-2025',
+  'mcu-captain-america-the-first-avenger-2011',
+  'mcu-agent-carter-2013',
+  'mcu-captain-marvel-2019',
+  'mcu-iron-man-2008',
+  'mcu-iron-man-2-2010',
+  'mcu-the-incredible-hulk-2008',
+  'mcu-a-funny-thing-happened-on-the-way-to-thor-s-hammer-2011',
+  'mcu-thor-2011',
+  'mcu-the-consultant-2011',
+  'mcu-the-avengers-2012',
+  'mcu-item-47-2012',
+  'mcu-thor-the-dark-world-2013',
+  'mcu-iron-man-3-2013',
+  'mcu-all-hail-the-king-2014',
+  'mcu-captain-america-the-winter-soldier-2014',
+  'mcu-guardians-of-the-galaxy-2014',
+  'mcu-guardians-of-the-galaxy-vol-2-2017',
+  'mcu-i-am-groot-2022',
+  'mcu-avengers-age-of-ultron-2015',
+  'mcu-ant-man-2015',
+  'mcu-captain-america-civil-war-2016',
+  'mcu-black-widow-2021',
+  'mcu-black-panther-2018',
+  'mcu-spider-man-homecoming-2017',
+  'mcu-doctor-strange-2016',
+  'mcu-thor-ragnarok-2017',
+  'mcu-ant-man-and-the-wasp-2018',
+  'mcu-avengers-infinity-war-2018',
+  'mcu-avengers-endgame-2019',
+  'mcu-loki-2021',
+  'mcu-wandavision-2021',
+  'mcu-shang-chi-and-the-legend-of-the-ten-rings-2021',
+  'mcu-the-falcon-and-the-winter-soldier-2021',
+  'mcu-spider-man-far-from-home-2019',
+  'mcu-eternals-2021',
+  'mcu-spider-man-no-way-home-2021',
+  'mcu-doctor-strange-in-the-multiverse-of-madness-2022',
+  'mcu-hawkeye-2021',
+  'mcu-moon-knight-2022',
+  'mcu-black-panther-wakanda-forever-2022',
+  'mcu-echo-2024',
+  'mcu-she-hulk-attorney-at-law-2022',
+  'mcu-ms-marvel-2022',
+  'mcu-thor-love-and-thunder-2022',
+  'mcu-ironheart-2025',
+  'mcu-werewolf-by-night-2022',
+  'mcu-the-guardians-of-the-galaxy-holiday-special-2022',
+  'mcu-ant-man-and-the-wasp-quantumania-2023',
+  'mcu-guardians-of-the-galaxy-vol-3-2023',
+  'mcu-secret-invasion-2023',
+  'mcu-the-marvels-2023',
+  'mcu-agatha-all-along-2024',
+  'mcu-daredevil-born-again-2025',
+  'mcu-captain-america-brave-new-world-2025',
+  'mcu-thunderbolts-2025',
+  'mcu-the-fantastic-four-first-steps-2025',
+  'mcu-wonder-man-2026',
+  'mcu-daredevil-born-again-season-2-2026',
+  'mcu-the-punisher-one-last-kill-2026',
+]
+
+const mcuTimelineRank = new Map(mcuTimelineOrder.map((id, index) => [id, index]))
+
 const sortChronology = (a: ChronologyEntry, b: ChronologyEntry) => (
   a.chronologyYear - b.chronologyYear
+  || (mcuTimelineRank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (mcuTimelineRank.get(b.id) ?? Number.MAX_SAFE_INTEGER)
   || a.releaseDate.localeCompare(b.releaseDate)
   || a.title.title.localeCompare(b.title.title)
   || a.id.localeCompare(b.id)
@@ -176,7 +249,7 @@ export const buildChronologicalOrderMap = (
   return { groups, entries, groupsByUniverse, entriesByUniverse }
 }
 
-export const chronologicalOrderMap = buildChronologicalOrderMap()
+export const chronologicalOrderMap = buildChronologicalOrderMap(catalog, { includeUnreleased: true })
 export const chronologicalOrderGroups = chronologicalOrderMap.groups
 export const chronologicalOrderEntries = chronologicalOrderMap.entries
 export const chronologicalGroupsByUniverse = chronologicalOrderMap.groupsByUniverse

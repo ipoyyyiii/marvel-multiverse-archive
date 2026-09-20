@@ -1,8 +1,9 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type Ref } from 'react'
 import { ArrowRight, Crosshair, Maximize2, Minus, Plus, Scan, Waves, X } from 'lucide-react'
 import { catalog, connections, universes, type ConnectionType, type TitleFormat, type UniverseId } from './data/catalog'
 import { EnergyBranch, EnergySpine, TimelineFlowPulse, streamColor, timelineColor, useReducedMotion, type FlowSpine } from './TimelineEnergy'
 import { MAP_UNIVERSE_ORDER, MAX_ZOOM, MIN_ZOOM, OVERVIEW_ZOOM, NODE_HEIGHT, NODE_WIDTH, clampMapZoom, fitMapZoom, makeMapLayout, reprojectMapPoint, routeMapConnections, type GraphLayout, type MapPoint, type MapRoute, type NodePosition } from './mapGeometry'
+import { ROAD_TO_DOOMSDAY_IDS } from './roadToDoomsday'
 import MapMinimap from './MapMinimap'
 import { selectMapTitles } from './mapSelection'
 import { archiveLogoPath } from './data/logoAssets'
@@ -16,6 +17,7 @@ interface MapProps {
   onSelect: (id: string) => void
   connectionDisplay: ConnectionDisplay
   showAll: boolean
+  roadToDoomsday: boolean
   activeUniverse: UniverseId | 'all'
   focus: boolean
   formatFilters: Set<TitleFormat>
@@ -57,7 +59,7 @@ const TitleNode = memo(function TitleNode({ node, selected, connected, onSelect 
     >
       {title.event && <span className={`event-kicker ${title.event}`}>{title.event === 'crossover' ? 'CROSSOVER EVENT' : title.event === 'hub' ? 'TVA HUB' : 'ANNOUNCED'}</span>}
       <span className={`node-art ${logo ? 'logo-node' : 'wordmark-node'}`}>
-        {logo ? <img className="node-logo" src={logo} alt="" draggable={false} loading={selected || connected ? 'eager' : 'lazy'} decoding="async" onError={() => setFailedLogo(true)} />
+        {logo ? <img className="node-logo" src={logo} alt="" draggable={false} loading={selected || connected ? 'eager' : 'lazy'} fetchPriority={selected || connected ? 'high' : 'auto'} decoding="async" onError={() => setFailedLogo(true)} />
           : <span className={`node-wordmark ${title.title.length > 30 ? 'long' : ''}`}>{title.title}</span>}
         {(selected || connected) && <span className="relationship-count">{relationshipCounts.get(title.id) || 0}</span>}
       </span>
@@ -68,7 +70,7 @@ const TitleNode = memo(function TitleNode({ node, selected, connected, onSelect 
 })
 
 /** Pan changes the native scroll position, never the geometry or static artwork. */
-const MapScene = memo(function MapScene({ layout, routes, selectedId, activeRouteId, flowing, onSelect, onRoute }: {
+const MapScene = memo(function MapScene({ layout, routes, selectedId, activeRouteId, flowing, onSelect, onRoute, frameRef, worldRef }: {
   layout: GraphLayout
   routes: MapRoute[]
   selectedId: string
@@ -76,6 +78,8 @@ const MapScene = memo(function MapScene({ layout, routes, selectedId, activeRout
   flowing: boolean
   onSelect: (id: string) => void
   onRoute: (id: string | null) => void
+  frameRef: Ref<HTMLDivElement>
+  worldRef: Ref<HTMLDivElement>
 }) {
   const zoom = layout.zoom
   const detailZoom = Math.max(OVERVIEW_ZOOM, zoom)
@@ -86,8 +90,8 @@ const MapScene = memo(function MapScene({ layout, routes, selectedId, activeRout
   })), [layout.lanes])
   const connectedIds = useMemo(() => new Set(routes.filter((route) => activeRouteId ? route.id === activeRouteId : route.from === selectedId || route.to === selectedId).flatMap((route) => [route.from, route.to])), [routes, activeRouteId, selectedId])
 
-  return <div className="scene-frame" style={{ width: layout.width * zoom, height: layout.height * zoom }}>
-    <div className="world-scene" style={{ width: layout.width, height: layout.height, transform: `scale(${zoom})` }}>
+  return <div ref={frameRef} className="scene-frame" style={{ width: layout.width * zoom, height: layout.height * zoom }}>
+    <div ref={worldRef} className="world-scene" style={{ width: layout.width, height: layout.height, transform: `scale(${zoom})` }}>
       {layout.lanes.map((lane) => <div key={lane.universeId} className="lane-surface" data-lane={lane.universeId} style={{ top: lane.y, height: lane.height }} />)}
       <svg className="graph-lines" width={layout.width} height={layout.height} aria-label="Title relationships">
         {routes.map((route) => {
@@ -123,13 +127,15 @@ const MapScene = memo(function MapScene({ layout, routes, selectedId, activeRout
           </g>
         })}
       </svg>
-      {spines.map((spine) => <TimelineFlowPulse key={spine.id} spine={spine} zoom={detailZoom} flowing={flowing} />)}
+      {/* Pulses shrink below a pixel past Overview, so unmount them there
+          instead of compositing 20 invisible infinite animations during zoom. */}
+      {zoom >= OVERVIEW_ZOOM && spines.map((spine) => <TimelineFlowPulse key={spine.id} spine={spine} zoom={detailZoom} flowing={flowing} />)}
       {[...layout.positions.values()].map((node) => <TitleNode key={node.title.id} node={node} selected={node.title.id === selectedId} connected={connectedIds.has(node.title.id)} onSelect={onSelect} />)}
     </div>
   </div>
 })
 
-export default function MultiverseMap({ selectedId, selectionActive, onSelect, connectionDisplay, showAll, activeUniverse, focus, formatFilters, connectionFilter, hiddenUniverses, revealToken }: MapProps) {
+export default function MultiverseMap({ selectedId, selectionActive, onSelect, connectionDisplay, showAll, roadToDoomsday, activeUniverse, focus, formatFilters, connectionFilter, hiddenUniverses, revealToken }: MapProps) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const [zoom, setZoom] = useState(.88)
   const [scroll, setScroll] = useState({ left: 0, top: 0 })
@@ -153,6 +159,18 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
   >(null)
   const pointersRef = useRef(new Map<number, { x: number; y: number }>())
   const pinchRef = useRef<{ distance: number; zoom: number; point: MapPoint; layout: GraphLayout } | null>(null)
+  // Trackpad pinch (ctrl/meta + wheel) fires dozens of events per second.
+  // Coalesce them into one zoom step per frame instead of one render per event.
+  const wheelRef = useRef<{ delta: number; x: number; y: number } | null>(null)
+  const wheelFrame = useRef(0)
+  // Gesture-zoom bypass: while pinching or trackpad-zooming, the live scale is
+  // written straight to the DOM (frame size + world transform + scroll) without
+  // touching React state, so no geometry rebuild happens mid-gesture. The exact
+  // geometry commits once when the gesture settles.
+  const frameRef = useRef<HTMLDivElement | null>(null)
+  const worldRef = useRef<HTMLDivElement | null>(null)
+  const displayRef = useRef<{ zoom: number; screen: MapPoint; anchor: MapPoint } | null>(null)
+  const displayTimer = useRef(0)
   const selected = titleById.get(selectedId)!
   // Inspector close keeps the last title in memory for a quick reopen, but
   // removes all map selection chrome (red junction, stems, routes, minimap).
@@ -160,9 +178,25 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
   const focusedUniverse = focus ? selected.universeId : activeUniverse
   const universeIds = useMemo(() => MAP_UNIVERSE_ORDER.filter((id) => !hiddenUniverses.has(id) && (focusedUniverse === 'all' || id === focusedUniverse)), [focusedUniverse, hiddenUniverses])
   const selectedForLayout = showAll ? '' : selectedId
-  const stagedTitles = useMemo(() => selectMapTitles(catalog, connections, { universeIds, showAll, selectedId: selectedForLayout, formats: formatFilters }), [universeIds, showAll, selectedForLayout, formatFilters])
+  const baseTitles = useMemo(() => selectMapTitles(catalog, connections, { universeIds, showAll, selectedId: selectedForLayout, formats: formatFilters }), [universeIds, showAll, selectedForLayout, formatFilters])
+  // Road to Doomsday is a post-filter: it only narrows what the other
+  // filters already staged, so universe switches and format filters keep working.
+  const stagedTitles = useMemo(() => (roadToDoomsday ? baseTitles.filter((title) => ROAD_TO_DOOMSDAY_IDS.has(title.id)) : baseTitles), [baseTitles, roadToDoomsday])
+  // Prune lanes left empty by the road filter so they don't render as blank tracks.
+  const visibleUniverseIds = useMemo(() => {
+    if (!roadToDoomsday) return universeIds
+    const needed = new Set<UniverseId>()
+    for (const title of stagedTitles) {
+      if (universeIds.includes(title.universeId)) needed.add(title.universeId)
+      else {
+        const alias = title.viewUniverseIds?.find((id) => universeIds.includes(id))
+        if (alias) needed.add(alias)
+      }
+    }
+    return universeIds.filter((id) => needed.has(id))
+  }, [universeIds, stagedTitles, roadToDoomsday])
   const geometryZoom = Math.max(OVERVIEW_ZOOM, zoom)
-  const geometryLayout = useMemo(() => makeMapLayout(stagedTitles, universeIds, geometryZoom), [stagedTitles, universeIds, geometryZoom])
+  const geometryLayout = useMemo(() => makeMapLayout(stagedTitles, visibleUniverseIds, geometryZoom), [stagedTitles, visibleUniverseIds, geometryZoom])
   const layout = useMemo(() => ({ ...geometryLayout, zoom }), [geometryLayout, zoom])
   const currentView = useRef({ layout, zoom })
   useLayoutEffect(() => { currentView.current = { layout, zoom } }, [layout, zoom])
@@ -194,7 +228,9 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
       const commit = () => {
         scrollCommitTimer.current = 0
         lastScrollCommit.current = performance.now()
-        setScroll({ left: element.scrollLeft, top: element.scrollTop })
+        const left = element.scrollLeft
+        const top = element.scrollTop
+        setScroll((prev) => (prev.left === left && prev.top === top ? prev : { left, top }))
       }
       const remaining = 82 - (performance.now() - lastScrollCommit.current)
       if (remaining > 0) {
@@ -205,9 +241,15 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
   useEffect(() => () => {
     cancelAnimationFrame(scrollFrame.current)
     cancelAnimationFrame(gestureFrame.current)
+    cancelAnimationFrame(wheelFrame.current)
     if (scrollCommitTimer.current) window.clearTimeout(scrollCommitTimer.current)
+    if (displayTimer.current) window.clearTimeout(displayTimer.current)
     scrollFrame.current = 0
     gestureFrame.current = 0
+    wheelFrame.current = 0
+    displayTimer.current = 0
+    displayRef.current = null
+    wheelRef.current = null
     scrollCommitTimer.current = 0
     pointersRef.current.clear()
     pinchRef.current = null
@@ -231,12 +273,38 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
     return () => document.removeEventListener('keydown', closeConnection, true)
   }, [activeRoute?.id])
 
+  // Commits a gesture-zoom bypass to React state exactly once, anchored so the
+  // layout effect reprojects the gesture anchor into the rebuilt geometry.
+  const commitDisplayZoom = useCallback(() => {
+    if (displayTimer.current) {
+      window.clearTimeout(displayTimer.current)
+      displayTimer.current = 0
+    }
+    // Never commit mid-touch: fingers still down means more live updates follow.
+    // Defer until the gesture lifts instead of rebuilding geometry underneath it.
+    if (pointersRef.current.size) {
+      if (displayRef.current && !displayTimer.current) {
+        displayTimer.current = window.setTimeout(commitDisplayZoom, 140)
+      }
+      return
+    }
+    const pending = displayRef.current
+    displayRef.current = null
+    if (!pending) return
+    const { zoom: committedZoom, layout: committedLayout } = currentView.current
+    const next = clampMapZoom(pending.zoom)
+    if (next === committedZoom) return
+    pendingZoomAnchor.current = { point: pending.anchor, layout: committedLayout, screen: pending.screen }
+    setZoom(next)
+  }, [])
+
   const centerOn = useCallback((id: string, behavior: ScrollBehavior = 'smooth') => {
+    commitDisplayZoom()
     const element = viewportRef.current
     const node = layout.positions.get(id)
     if (!element || !node) return
     element.scrollTo({ left: node.x * zoom - element.clientWidth / 2, top: node.trackY * zoom - element.clientHeight / 2, behavior: reducedMotion ? 'auto' : behavior })
-  }, [layout, zoom, reducedMotion])
+  }, [layout, zoom, reducedMotion, commitDisplayZoom])
 
   // Reflow preserves a nearby title. Zoom is never followed by a selected-title timeout.
   useLayoutEffect(() => {
@@ -255,10 +323,14 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
     }
     pendingZoomAnchor.current = null
     previous.current = { layout, revealToken }
-    setScroll({ left: element.scrollLeft, top: element.scrollTop })
+    // No setScroll here: programmatic scrollTo above fires a scroll event, and
+    // updateScroll commits it throttled. Setting state here would force a second
+    // render on every zoom frame (setZoom render + setScroll render).
   }, [layout, revealToken, selectedId, updateScroll, zoom])
 
   const changeZoom = useCallback((value: number, screenPoint?: MapPoint) => {
+    // Discrete controls flush any live gesture zoom first so state stays exact.
+    commitDisplayZoom()
     const { zoom: currentZoom, layout: currentLayout } = currentView.current
     const next = clampMapZoom(value)
     if (next === currentZoom) return
@@ -271,22 +343,68 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
       }
     }
     setZoom(next)
-  }, [])
+  }, [commitDisplayZoom])
+
+  // Live gesture zoom: imperatively scale the scene and re-anchor scroll around
+  // the cursor/fingers. No setState, so MapScene memo + geometry memos stay put
+  // and the frame only pays for a transform, a scroll, and cheap chrome updates.
+  const applyDisplayZoom = useCallback((value: number, screen: MapPoint) => {
+    const { zoom: committedZoom, layout: committedLayout } = currentView.current
+    const element = viewportRef.current
+    const frame = frameRef.current
+    const world = worldRef.current
+    const next = clampMapZoom(value)
+    if (!element || !frame || !world) {
+      changeZoom(next, screen)
+      return
+    }
+    const anchor = { x: (element.scrollLeft + screen.x) / committedZoom, y: (element.scrollTop + screen.y) / committedZoom }
+    frame.style.width = `${committedLayout.width * next}px`
+    frame.style.height = `${committedLayout.height * next}px`
+    world.style.transform = `scale(${next})`
+    element.scrollLeft = anchor.x * next - screen.x
+    element.scrollTop = anchor.y * next - screen.y
+    displayRef.current = { zoom: next, screen, anchor }
+    if (displayTimer.current) window.clearTimeout(displayTimer.current)
+    displayTimer.current = window.setTimeout(commitDisplayZoom, 140)
+  }, [changeZoom, commitDisplayZoom])
 
   // A non-passive listener prevents the browser's own page zoom from competing.
+  // Wheel events are coalesced: one rAF per frame applies the summed delta as a
+  // single zoom step, so a trackpad burst never triggers a render per event.
   useEffect(() => {
     const element = viewportRef.current
     if (!element) return
+    const applyWheelZoom = () => {
+      wheelFrame.current = 0
+      const pending = wheelRef.current
+      wheelRef.current = null
+      if (!pending) return
+      const clamped = Math.max(-120, Math.min(120, pending.delta))
+      const base = displayRef.current?.zoom ?? currentView.current.zoom
+      applyDisplayZoom(base * Math.exp(-clamped * .008), { x: pending.x, y: pending.y })
+    }
     const wheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) {
         event.preventDefault()
         const rect = element.getBoundingClientRect()
-        changeZoom(currentView.current.zoom * Math.exp(-Math.max(-60, Math.min(60, event.deltaY)) * .008), { x: event.clientX - rect.left, y: event.clientY - rect.top })
+        const prev = wheelRef.current
+        wheelRef.current = {
+          delta: (prev?.delta || 0) + Math.max(-60, Math.min(60, event.deltaY)),
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        }
+        if (!wheelFrame.current) wheelFrame.current = requestAnimationFrame(applyWheelZoom)
       }
     }
     element.addEventListener('wheel', wheel, { passive: false })
-    return () => element.removeEventListener('wheel', wheel)
-  }, [changeZoom])
+    return () => {
+      element.removeEventListener('wheel', wheel)
+      if (wheelFrame.current) cancelAnimationFrame(wheelFrame.current)
+      wheelFrame.current = 0
+      wheelRef.current = null
+    }
+  }, [applyDisplayZoom])
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
@@ -324,10 +442,11 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
       const [a, b] = [...pointersRef.current.values()]
       const rect = element.getBoundingClientRect()
       const screen = { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top }
-      const next = clampMapZoom(pinch.zoom * Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)) / pinch.distance)
-      if (next !== currentView.current.zoom) {
-        pendingZoomAnchor.current = { point: pinch.point, layout: pinch.layout, screen }
-        setZoom(next)
+      // Ratio is total-from-gesture-start, so the committed start zoom stays the
+      // base; the live scale bypasses React until fingers lift.
+      const next = pinch.zoom * Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)) / pinch.distance
+      if (next !== (displayRef.current?.zoom ?? currentView.current.zoom)) {
+        applyDisplayZoom(next, screen)
       } else {
         const point = reprojectMapPoint(pinch.point, pinch.layout, currentView.current.layout)
         element.scrollTo({ left: point.x * next - screen.x, top: point.y * next - screen.y, behavior: 'auto' })
@@ -359,6 +478,8 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
       gestureFrame.current = 0
     }
     pointersRef.current.delete(event.pointerId)
+    // Fingers lifted: settle the live gesture scale into exact geometry now.
+    if (!pointersRef.current.size) commitDisplayZoom()
     if (gestureMoved.current) suppressClickUntil.current = performance.now() + 500
     pinchRef.current = null
     const remaining = pointersRef.current.entries().next().value
@@ -368,35 +489,37 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
     if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId)
   }
   const navigateMinimap = useCallback(({ x, y }: { x: number; y: number }) => {
+    commitDisplayZoom()
     const element = viewportRef.current
     if (element) element.scrollTo({ left: x * zoom - element.clientWidth / 2, top: y * zoom - element.clientHeight / 2, behavior: 'auto' })
-  }, [zoom])
+  }, [zoom, commitDisplayZoom])
   const handleMapSelect = useCallback((id: string) => {
     setActiveRouteId(null)
     onSelect(id)
   }, [onSelect])
   const resetView = (next: number) => {
+    commitDisplayZoom()
     pendingZoomAnchor.current = 'home'
     if (zoom === next) { viewportRef.current?.scrollTo({ left: 0, top: 0 }); pendingZoomAnchor.current = null }
     else setZoom(next)
   }
 
   return <section className={`map-panel plasma-map ${zoom < .016 ? 'distant-map' : ''}`} aria-label="Interactive multiverse timeline map">
-    <div className="map-status-strip"><div><span className="live-dot" /><b>{showAll ? 'FULL ARCHIVE' : 'CURATED + CONNECTED'} · {stagedTitles.length} TITLES · {universeIds.length} TIMELINES</b></div><span>DRAG TO EXPLORE · PINCH OR CTRL / ⌘ + SCROLL TO ZOOM</span></div>
+    <div className="map-status-strip"><div><span className="live-dot" /><b>{roadToDoomsday ? 'ROAD TO DOOMSDAY' : showAll ? 'FULL ARCHIVE' : 'CURATED + CONNECTED'} · {stagedTitles.length} TITLES · {visibleUniverseIds.length} TIMELINES</b></div><span>DRAG TO EXPLORE · PINCH OR CTRL / ⌘ + SCROLL TO ZOOM</span></div>
     <div ref={viewportRef} className={`map-viewport ${dragging ? 'dragging' : ''}`} onScroll={updateScroll} onPointerDown={onPointerDown}
       onPointerMove={moveDrag}
       onPointerUp={stopDrag} onPointerCancel={stopDrag} onLostPointerCapture={(event) => { if (event.target === event.currentTarget) stopDrag(event) }}
       onClickCapture={(event) => {
         if (event.detail > 0 && performance.now() < suppressClickUntil.current) { event.preventDefault(); event.stopPropagation() }
       }}>
-      <MapScene layout={layout} routes={routes} selectedId={activeSelectionId} activeRouteId={activeRoute?.id || null} flowing={flowEnabled && !reducedMotion} onSelect={handleMapSelect} onRoute={setActiveRouteId} />
+      <MapScene layout={layout} routes={routes} selectedId={activeSelectionId} activeRouteId={activeRoute?.id || null} flowing={flowEnabled && !reducedMotion} onSelect={handleMapSelect} onRoute={setActiveRouteId} frameRef={frameRef} worldRef={worldRef} />
     </div>
     <div className="map-lane-captions" aria-hidden="true">
       {layout.lanes.map((lane) => <div key={lane.universeId} className="map-lane-caption" style={{ top: lane.trackY * zoom - scroll.top - 7, '--accent': timelineColor(lane.universeId, universeById.get(lane.universeId)!.color) } as CSSProperties}>
         <i /><span>{universeById.get(lane.universeId)!.shortName}<small>{lane.count} titles{['legacy', 'marvel-tv', 'animation', 'alternate'].includes(lane.universeId) ? ' · separate continuities' : ''}</small></span>
       </div>)}
     </div>
-    {!stagedTitles.length && <div className="map-empty-state"><b>{universeIds.length ? 'No titles match these filters' : 'Choose a universe to explore'}</b><span>{universeIds.length ? 'Enable Show All Titles or another format in the sidebar.' : 'Use the universe switches in the left sidebar.'}</span></div>}
+    {!stagedTitles.length && <div className="map-empty-state"><b>{visibleUniverseIds.length ? 'No titles match these filters' : 'Choose a universe to explore'}</b><span>{visibleUniverseIds.length ? 'Enable Show All Titles or another format in the sidebar.' : 'Use the universe switches in the left sidebar.'}</span></div>}
     {activeRoute && <div id="map-connection-detail" className="map-connection-detail" role="dialog" aria-labelledby="map-connection-heading">
       <button className="connection-detail-close" onClick={() => setActiveRouteId(null)} aria-label="Close connection explanation"><X size={13} /></button>
       <small>{activeRoute.type.replaceAll('-', ' ').toUpperCase()}</small>
@@ -416,7 +539,7 @@ export default function MultiverseMap({ selectedId, selectionActive, onSelect, c
         <button className={`flow-toggle ${flowEnabled && !reducedMotion ? 'active' : ''}`} onClick={() => setFlowEnabled((value) => !value)} aria-label="Toggle flowing timeline glow" aria-pressed={flowEnabled && !reducedMotion} disabled={reducedMotion}><Waves size={14} />Flow {flowEnabled && !reducedMotion ? 'on' : 'off'}</button>
         <button onClick={() => changeZoom(zoom * .8)} aria-label="Zoom out" disabled={zoom <= MIN_ZOOM}><Minus size={14} /></button><span aria-live="polite">{zoom < .1 ? (zoom * 100).toFixed(1) : Math.round(zoom * 100)}%</span><button onClick={() => changeZoom(zoom / .8)} aria-label="Zoom in" disabled={zoom >= MAX_ZOOM}><Plus size={14} /></button>
         <button className="fit-button" onClick={() => resetView(OVERVIEW_ZOOM)} title="Readable overview; zoom out further to see the entire map"><Maximize2 size={13} />Overview</button>
-        <button className="fit-all-button" onClick={() => resetView(fitMapZoom(makeMapLayout(stagedTitles, universeIds, OVERVIEW_ZOOM), viewportSize))} aria-label="Fit entire map" title="Fit every visible timeline in the viewport"><Scan size={14} /><span>Fit all</span></button>
+        <button className="fit-all-button" onClick={() => resetView(fitMapZoom(makeMapLayout(stagedTitles, visibleUniverseIds, OVERVIEW_ZOOM), viewportSize))} aria-label="Fit entire map" title="Fit every visible timeline in the viewport"><Scan size={14} /><span>Fit all</span></button>
       </div>
       {zoom < .7 && <span className="readable-zoom-note">{zoom < OVERVIEW_ZOOM ? 'Full-map scale · zoom in for titles' : 'Readable titles · pan for more'}</span>}
     </div>

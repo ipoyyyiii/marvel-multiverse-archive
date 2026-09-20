@@ -55,6 +55,15 @@
   .archive-minimap-heading { padding-bottom: 5px; font-size: 9px; }
   .archive-minimap-canvas { aspect-ratio: 224 / 116; }
   .archive-minimap-hint { font-size: 8px; }
+  .archive-minimap-toggle { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 44px; min-height: 44px; padding: 8px 10px; color: #c0cbdb; background: transparent; border: 0; font: 600 9px/1.2 "Barlow Condensed", sans-serif; letter-spacing: 1px; cursor: pointer; }
+  .archive-minimap-toggle span:nth-child(2) { color: #8795a9; }
+  .archive-minimap-toggle:focus-visible { outline: 2px solid #f0253e; outline-offset: 2px; }
+  .archive-minimap-chevron { margin-left: auto; width: 8px; height: 8px; flex-shrink: 0; border-right: 2px solid #c0cbdb; border-bottom: 2px solid #c0cbdb; transform: rotate(45deg); }
+  .archive-minimap.is-collapsed { width: auto; max-width: min(206px, calc(100vw - 16px)); }
+  .archive-minimap.is-collapsed .archive-minimap-toggle { width: auto; }
+  .archive-minimap.is-collapsed .archive-minimap-chevron { transform: rotate(-135deg); }
+  .archive-minimap.is-collapsed .archive-minimap-canvas,
+  .archive-minimap.is-collapsed .archive-minimap-hint { display: none; }
 }
 
 @media (max-height: 680px) {

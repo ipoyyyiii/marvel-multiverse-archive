@@ -46,6 +46,8 @@ export interface ChronologicalOrderProps {
   onPreviousUniverse?: () => void
   onNextUniverse?: () => void
   selectedId?: string
+  /** When false, selection chrome hides even though a last title is remembered. */
+  selectionActive?: boolean
   onSelectTitle?: (titleId: string) => void
   renderTitleLogo?: (title: MarvelTitle) => ReactNode
   className?: string
@@ -76,6 +78,7 @@ const CHRONOLOGY_LABELS: Record<string, string> = {
 }
 
 const decadeFor = (year: number) => {
+  if (year < 1940) return { id: 'era-1930s', label: '1930s', subtitle: 'Origins and first appearances' }
   if (year < 1950) return { id: 'era-1940s', label: '1940s', subtitle: 'Origins and first appearances' }
   if (year < 2000) return { id: 'era-20th-century', label: '20TH CENTURY', subtitle: 'Legacy continuities and early worlds' }
   if (year < 2010) return { id: 'era-2000s', label: '2000s', subtitle: 'Separate cinematic continuities' }
@@ -117,7 +120,9 @@ const formatEntryMeta = (title: MarvelTitle) => {
     <span className="chronological-entry-meta">
       <span className="chronological-format">{icon}{title.format}</span>
       {title.seasons ? <span className="chronological-season">{title.seasons === 1 ? '1 SEASON' : `${title.seasons} SEASONS`}</span> : null}
-      <span className="chronological-release">RELEASED {title.year}</span>
+      {title.released
+        ? <span className="chronological-release">RELEASED {title.year}</span>
+        : <span className="chronological-coming-soon">COMING SOON · {title.year}</span>}
     </span>
   )
 }
@@ -372,6 +377,7 @@ const CHRONOLOGICAL_STYLES = `
 .chronological-format { display: inline-flex; align-items: center; gap: 3px; }
 .chronological-season { padding: 3px 5px 2px; color: color-mix(in srgb, var(--chronological-accent) 65%, #fff 24%); border: 1px solid color-mix(in srgb, var(--chronological-accent) 38%, transparent); border-radius: 3px; font-size: 7px; }
 .chronological-release { color: #5d6a7d; }
+.chronological-coming-soon { color: #d8cdff; }
 .chronological-entry-note { max-width: 94%; overflow: hidden; color: #8591a4; font-size: 8px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
 .chronological-empty { margin: 80px auto; color: #8995a8; text-align: center; }
 @media (max-width: 820px) {
@@ -435,17 +441,19 @@ export default function ChronologicalOrder({
   onPreviousUniverse,
   onNextUniverse,
   selectedId,
+  selectionActive = true,
   onSelectTitle,
   renderTitleLogo,
   className = '',
 }: ChronologicalOrderProps) {
+  const activeSelectedId = selectionActive ? selectedId : ''
   const universe = getUniverse(universeId)
   const universeList = universeOptions.length ? universeOptions : universes
   const currentIndex = universeIndex ?? Math.max(0, universeList.findIndex((item) => item.id === universeId))
 
   const universeEntries = useMemo(() => {
     if (entries) return entries
-    return titles.filter((title) => title.released && belongsToUniverse(title, universeId)).map(makeEntry)
+    return titles.filter((title) => belongsToUniverse(title, universeId)).map(makeEntry)
   }, [entries, titles, universeId])
 
   const chronologicalGroups = useMemo(() => groups || buildGroups(universeEntries), [groups, universeEntries])
@@ -560,7 +568,7 @@ export default function ChronologicalOrder({
                 entry={entry}
                 side={entry.side || (index % 2 === 0 ? 'left' : 'right')}
                 accent={universe.color}
-                selected={entry.title.id === selectedId}
+                selected={entry.title.id === activeSelectedId}
                 onSelectTitle={onSelectTitle}
                 renderTitleLogo={renderTitleLogo}
               />

@@ -47,6 +47,8 @@ export interface ReleaseOrderProps {
   onNextUniverse?: () => void
   /** Selected title id receives the active logo treatment. */
   selectedId?: string
+  /** When false, selection chrome hides even though a last title is remembered. */
+  selectionActive?: boolean
   /** Individual logo node callback. */
   onSelectTitle?: (titleId: string) => void
   /** Optional logo renderer for a parent that owns a richer asset pipeline. */
@@ -92,7 +94,7 @@ const formatMeta = (title: MarvelTitle) => {
       <i>·</i>
       <span className="release-format">{format}{title.format}</span>
       {title.seasons ? <em>S{title.seasons}</em> : null}
-      {!title.released ? <em className="release-future">FUTURE</em> : null}
+      {!title.released ? <em className="release-future">COMING SOON</em> : null}
     </span>
   )
 }
@@ -190,10 +192,12 @@ export default function ReleaseOrder({
   onPreviousUniverse,
   onNextUniverse,
   selectedId,
+  selectionActive = true,
   onSelectTitle,
   renderTitleLogo,
   className = '',
 }: ReleaseOrderProps) {
+  const activeSelectedId = selectionActive ? selectedId : ''
   const universe = getUniverse(universeId)
   const universeList = universeOptions.length ? universeOptions : universes
   const currentIndex = universeIndex ?? Math.max(0, universeList.findIndex((item) => item.id === universeId))
@@ -295,7 +299,7 @@ export default function ReleaseOrder({
                         key={title.id}
                         title={title}
                         accent={accent}
-                        selected={title.id === selectedId}
+                        selected={title.id === activeSelectedId}
                         onSelectTitle={onSelectTitle}
                         renderTitleLogo={renderTitleLogo}
                       />

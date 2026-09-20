@@ -6,4 +6,6 @@ dist/
 .env
 .env.*
 !.env.example
+scripts/.synopsis-cache.json
+scripts/.catalog-shim.mjs
 PROJECT_HANDOFF.md
