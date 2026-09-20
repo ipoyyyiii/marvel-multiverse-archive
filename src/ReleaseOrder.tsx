@@ -293,7 +293,7 @@ export default function ReleaseOrder({
                     <b>{formatGroupCount(group.titles)}</b>
                   </header>
                   <div className="release-group-rule" aria-hidden="true" />
-                  <div className="release-title-grid">
+                  <div className="release-title-grid" data-single={group.titles.length === 1 ? 'true' : undefined}>
                     {group.titles.map((title) => (
                       <ReleaseTitleNode
                         key={title.id}

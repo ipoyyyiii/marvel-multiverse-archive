@@ -220,6 +220,25 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: () =
   )
 }
 
+/** Mobile-only (<768px) viewport flag. The collapsible explore header
+ *  renders a disclosure <button> on phones; desktop keeps the original
+ *  static header markup so its visuals never change. */
+function useIsMobileToolbar() {
+  const [isMobile, setIsMobile] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  ))
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)')
+    const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', onChange)
+      return () => query.removeEventListener('change', onChange)
+    }
+    return undefined
+  }, [])
+  return isMobile
+}
+
 function ExploreToolbar({
   connectionDisplay,
   setConnectionDisplay,
@@ -229,6 +248,9 @@ function ExploreToolbar({
   setFocus,
   roadToDoomsday,
   setRoadToDoomsday,
+  expanded,
+  onToggleExpanded,
+  collapsible,
 }: {
   connectionDisplay: ConnectionDisplay
   setConnectionDisplay: (value: ConnectionDisplay) => void
@@ -238,31 +260,70 @@ function ExploreToolbar({
   setFocus: (value: boolean) => void
   roadToDoomsday: boolean
   setRoadToDoomsday: (value: boolean) => void
+  expanded: boolean
+  onToggleExpanded: () => void
+  collapsible: boolean
 }) {
+  // Desktop keeps the original static header and flat controls markup, so
+  // its visuals never change. The disclosure <button> + collapsing
+  // .view-controls wrapper only render on mobile (collapsible below 768px).
+  const controls = (
+    <>
+      <div className="map-mode-badge" aria-label="Relationship map mode">RELATIONSHIP MAP <span>NO DATE SCALE</span></div>
+      <div className="toolbar-toggles">
+        <label className="connection-mode">
+          <span>CONNECTIONS</span>
+          <select id="connection-display" name="connection-display" value={connectionDisplay} onChange={(event) => setConnectionDisplay(event.target.value as ConnectionDisplay)}>
+            <option value="selected">Selected title</option>
+            <option value="events">Crossover events</option>
+            <option value="all">All connections</option>
+            <option value="off">Hidden</option>
+          </select>
+        </label>
+        <Toggle checked={showAll} onChange={() => setShowAll(!showAll)} label="Show All Titles" />
+        <Toggle checked={focus} onChange={() => setFocus(!focus)} label="Focus on Selected Universe" />
+        <Toggle checked={roadToDoomsday} onChange={() => setRoadToDoomsday(!roadToDoomsday)} label="Road to Doomsday" />
+      </div>
+    </>
+  )
   return (
-    <section className="explore-toolbar">
-      <div className="explore-title">
-        <span className="eyebrow"><Sparkles size={12} /> COMPLETE SCREEN ARCHIVE</span>
-        <h1>Explore the Marvel Multiverse</h1>
-        <p>Separate worlds. Connected stories.</p>
-      </div>
-      <div className="view-controls">
-        <div className="map-mode-badge" aria-label="Relationship map mode">RELATIONSHIP MAP <span>NO DATE SCALE</span></div>
-        <div className="toolbar-toggles">
-          <label className="connection-mode">
-            <span>CONNECTIONS</span>
-            <select id="connection-display" name="connection-display" value={connectionDisplay} onChange={(event) => setConnectionDisplay(event.target.value as ConnectionDisplay)}>
-              <option value="selected">Selected title</option>
-              <option value="events">Crossover events</option>
-              <option value="all">All connections</option>
-              <option value="off">Hidden</option>
-            </select>
-          </label>
-          <Toggle checked={showAll} onChange={() => setShowAll(!showAll)} label="Show All Titles" />
-          <Toggle checked={focus} onChange={() => setFocus(!focus)} label="Focus on Selected Universe" />
-          <Toggle checked={roadToDoomsday} onChange={() => setRoadToDoomsday(!roadToDoomsday)} label="Road to Doomsday" />
+    <section className={`explore-toolbar${collapsible ? ' toolbar-collapsible' : ''}${collapsible && !expanded ? ' toolbar-collapsed' : ''}`}>
+      {collapsible ? (
+        <button
+          type="button"
+          className="explore-title-toggle"
+          aria-expanded={expanded}
+          aria-controls="explore-view-controls"
+          onClick={onToggleExpanded}
+        >
+          <span className="explore-toggle-text">
+            <span className="eyebrow"><Sparkles size={12} /> COMPLETE SCREEN ARCHIVE</span>
+            <span className="explore-toggle-heading">Explore the Marvel Multiverse</span>
+            <span className="explore-toggle-sub">Separate worlds. Connected stories.</span>
+          </span>
+          {!expanded && <span className="explore-collapsed-badge">RELATIONSHIP MAP</span>}
+          <span className="explore-toggle-chevron" aria-hidden="true">
+            {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+          </span>
+        </button>
+      ) : (
+        <div className="explore-title">
+          <span className="eyebrow"><Sparkles size={12} /> COMPLETE SCREEN ARCHIVE</span>
+          <h1>Explore the Marvel Multiverse</h1>
+          <p>Separate worlds. Connected stories.</p>
         </div>
-      </div>
+      )}
+      {collapsible ? (
+        <div className="view-controls" id="explore-view-controls" inert={!expanded}>
+          <div className="view-controls-inner">
+            {controls}
+          </div>
+        </div>
+      ) : (
+        <div className="view-controls">
+          {controls}
+        </div>
+      )}
     </section>
   )
 }
@@ -498,7 +559,11 @@ export default function App() {
   const [revealToken, setRevealToken] = useState(0)
   const [inspectorOpen, setInspectorOpen] = useState(false)
   const [reopenHidden, setReopenHidden] = useState(false)
-  const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
+  // Mobile-only collapsible explore header. Default expanded; desktop is
+  // always treated as expanded, so its visuals never change.
+  const [exploreExpanded, setExploreExpanded] = useState(true)
+  const isMobileToolbar = useIsMobileToolbar()
+  const swipeStartRef = useRef<{ x: number; y: number; universe: boolean; fromLeftEdge: boolean } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(() => (
     typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches
   ))
@@ -641,7 +706,8 @@ export default function App() {
       // The map viewport has its own drag/pinch gestures, the inspector
       // (and sidebar) are their own panels, and form controls must keep
       // their native touch behavior — only bare content areas swipe views.
-      if (target.closest('.map-viewport, aside, input, select, textarea, button')) {
+      // Tab strips keep their native horizontal scroll/tap behavior too.
+      if (target.closest('.map-viewport, aside, input, select, textarea, button, .release-universe-tabs, .chronological-universe-tabs')) {
         swipeStartRef.current = null
         return
       }
@@ -651,7 +717,15 @@ export default function App() {
       return
     }
     const touch = event.touches[0]
-    swipeStartRef.current = { x: touch.clientX, y: touch.clientY }
+    // Horizontal swipes starting on the groups/timeline content area cycle
+    // the universe instead of switching views. Everything else keeps the
+    // existing view-swipe behavior.
+    let universe = false
+    if (target && typeof target.closest === 'function') {
+      if (archiveMode === 'release' && target.closest('.release-groups')) universe = true
+      else if (archiveMode === 'chronological' && target.closest('.chronological-timeline')) universe = true
+    }
+    swipeStartRef.current = { x: touch.clientX, y: touch.clientY, universe, fromLeftEdge: touch.clientX <= 24 }
   }
 
   const handleWorkspaceTouchEnd = (event: React.TouchEvent) => {
@@ -662,8 +736,34 @@ export default function App() {
     if (!touch) return
     const dx = touch.clientX - start.x
     const dy = touch.clientY - start.y
+    // Swipe from the left screen edge rightwards opens the sidebar.
+    // Runs before view/universe swipes; uses a shorter distance so the
+    // drawer feels responsive. Map gestures, open sidebar, and form
+    // controls/panels are already excluded at touch-start.
+    if (start.fromLeftEdge && !sidebarOpen && dx > 60 && Math.abs(dx) > 2 * Math.abs(dy)) {
+      setSidebarOpen(true)
+      return
+    }
     // Horizontal swipes only: vertical scrolling is never hijacked.
     if (Math.abs(dx) <= 80 || Math.abs(dx) <= 2.5 * Math.abs(dy)) return
+    const direction = dx < 0 ? 1 : -1
+    if (start.universe) {
+      // Swipe left = next universe, swipe right = previous universe.
+      // No wrapping, for consistency with view swipes.
+      if (archiveMode === 'release') {
+        if (direction === 1 && releaseUniverseIndex >= universes.length - 1) return
+        if (direction === -1 && releaseUniverseIndex <= 0) return
+        if (direction === 1) nextReleaseUniverse()
+        else previousReleaseUniverse()
+        return
+      }
+      if (archiveMode === 'chronological') {
+        if (direction === 1 && chronologicalUniverseIndex >= CHRONOLOGICAL_UNIVERSES.length - 1) return
+        if (direction === -1 && chronologicalUniverseIndex <= 0) return
+        stepChronologicalUniverse(direction)
+        return
+      }
+    }
     const index = ARCHIVE_MODE_ORDER.indexOf(archiveMode)
     // Swipe left = next view, swipe right = previous view. No wrapping:
     // map is first, chronological is last.
@@ -795,6 +895,9 @@ export default function App() {
               setFocus={setFocus}
               roadToDoomsday={roadToDoomsday}
               setRoadToDoomsday={setRoadToDoomsday}
+              expanded={isMobileToolbar ? exploreExpanded : true}
+              onToggleExpanded={() => setExploreExpanded((open) => !open)}
+              collapsible={isMobileToolbar}
             />
             <MultiverseMap
               selectedId={selected.id}

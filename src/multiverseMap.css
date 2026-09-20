@@ -104,16 +104,17 @@
   .plasma-map .map-lane-caption > i { flex-basis: 2px; height: 20px; }
   .plasma-map .map-lane-caption > span { font-size: 9px; letter-spacing: .35px; }
   .plasma-map .map-lane-caption small { font-size: 8px; }
-  .plasma-map .map-bottom-controls { left: 8px; right: 8px; bottom: 8px; min-height: 48px; padding: 6px 8px; gap: 6px; border-radius: 8px; }
+  .plasma-map .map-bottom-controls { left: 8px; right: 8px; bottom: 8px; min-height: 0; height: 44px; max-height: 44px; padding: 0 6px; gap: 0; border-radius: 8px; flex-wrap: nowrap; align-items: center; overflow: hidden; }
   .plasma-map .legend { display: none; }
-  .plasma-map .zoom-controls { width: 100%; justify-content: flex-end; margin-left: 0; padding-left: 0; border-left: 0; }
-  .plasma-map .zoom-controls button, .plasma-map .zoom-controls > span { min-width: 40px; height: 36px; font-size: 11px; }
-  .plasma-map .zoom-controls .flow-toggle { min-width: 74px; gap: 5px; }
-  .plasma-map .zoom-controls .fit-button { min-width: 74px; height: 36px; margin-left: 3px; }
-  .plasma-map .zoom-controls .fit-all-button { min-width: 36px; justify-content: center; margin-left: 3px; }
+  .plasma-map .zoom-controls { width: auto; flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; justify-content: flex-end; align-items: center; margin-left: 0; padding-left: 0; border-left: 0; height: 32px; min-height: 0; overflow: hidden; }
+  .plasma-map .zoom-controls button, .plasma-map .zoom-controls > span { min-width: 32px; height: 32px; min-height: 32px; padding: 0 6px; font-size: 10px; flex: 0 0 auto; }
+  .plasma-map .zoom-controls > span { min-width: 34px; padding: 0 4px; }
+  .plasma-map .zoom-controls .flow-toggle { min-width: 60px; gap: 4px; }
+  .plasma-map .zoom-controls .fit-button { min-width: 60px; height: 32px; min-height: 32px; margin-left: 4px; }
+  .plasma-map .zoom-controls .fit-all-button { min-width: 32px; justify-content: center; margin-left: 4px; }
   .plasma-map .zoom-controls .fit-all-button > span { display: none; }
-  .plasma-map .map-selection-actions { right: 8px; bottom: 66px; flex-wrap: wrap; justify-content: flex-end; }
-  .plasma-map .map-selection-actions button { min-height: 40px; padding: 0 11px; font-size: 12px; }
+  .plasma-map .map-selection-actions { right: 8px; left: 8px; bottom: 66px; flex-wrap: wrap; justify-content: flex-end; pointer-events: none; }
+  .plasma-map .map-selection-actions button { min-height: 44px; min-width: 44px; padding: 0 12px; font-size: 12px; pointer-events: auto; }
   .plasma-map .map-connection-detail { left: 8px; right: 8px; top: 31px; width: auto; padding: 13px 38px 13px 12px; }
   .plasma-map .map-connection-detail > div { align-items: flex-start; gap: 6px; }
   .plasma-map .connection-title-pair { flex: 1 1 0; gap: 6px; }

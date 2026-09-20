@@ -9,3 +9,5 @@ dist/
 scripts/.synopsis-cache.json
 scripts/.catalog-shim.mjs
 PROJECT_HANDOFF.md
+.vercel
+.env*

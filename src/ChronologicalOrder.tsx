@@ -390,18 +390,22 @@ const CHRONOLOGICAL_STYLES = `
   .chronological-rule { padding-inline: 16px; }
   .chronological-legend { justify-content: center; padding-inline: 16px; }
   .chronological-timeline { padding-inline: 16px; }
-  /* Keep a slim rail for the plasma and give all readable content the
-   * remaining width. The previous 1fr/30px layout put cards in the 30px
-   * column, which made the mobile chronology collapse. */
-  .chronological-entry { grid-template-columns: 28px minmax(0, 1fr); min-height: 142px; }
-  .chronological-spine-energy, .chronological-spine-flow { left: 14px; transform: translateX(-50%); }
-  .chronological-entry-left .chronological-card, .chronological-entry-right .chronological-card { grid-column: 2; width: 100%; margin: 0 0 0 12px; align-items: center; justify-content: flex-start; gap: 10px; text-align: left; }
+  /* Mobile keeps the desktop zigzag: center spine, cards alternate
+   *  left/right. Cards compress to the narrow columns (logo above text)
+   *  instead of the desktop side-by-side lockup. */
+  .chronological-entry { grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); min-height: 0; column-gap: 0; }
+  .chronological-entry-left .chronological-card { grid-column: 1; grid-row: 1; min-width: 0; max-width: 100%; margin: 0 4px 0 0; padding: 0; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+  .chronological-entry-right .chronological-card { grid-column: 3; grid-row: 1; min-width: 0; max-width: 100%; margin: 0 0 0 4px; padding: 0; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
+  .chronological-spine-energy, .chronological-spine-flow { left: 50%; transform: translateX(-50%); }
+  .chronological-entry .chronological-node { grid-column: 2; grid-row: 1; justify-self: center; width: 13px; height: 13px; }
+  .chronological-entry-left .chronological-card-content, .chronological-entry-right .chronological-card-content { order: 2; align-items: inherit; flex: 1 1 auto; flex-basis: auto; width: 100%; min-width: 0; max-width: 100%; }
   .chronological-entry-left .chronological-logo-stage, .chronological-entry-right .chronological-logo-stage { order: 1; }
-  .chronological-entry-left .chronological-card-content, .chronological-entry-right .chronological-card-content { order: 2; align-items: flex-start; flex-basis: 240px; }
-  .chronological-entry .chronological-node { grid-column: 1; justify-self: start; }
-  .chronological-entry-left .chronological-card::after, .chronological-entry-right .chronological-card::after { left: -25px; right: auto; transform: rotate(180deg); }
-  .chronological-logo-stage { flex: 0 0 clamp(88px, 28vw, 102px); width: clamp(88px, 28vw, 102px); height: 64px; }
-  .chronological-logo-image, .chronological-logo-custom > * { max-width: clamp(88px, 28vw, 102px); max-height: 60px; }
+  .chronological-entry-left .chronological-card::after { left: auto; right: -5px; transform: none; }
+  .chronological-entry-right .chronological-card::after { left: -5px; right: auto; transform: rotate(180deg); }
+  .chronological-logo-stage { flex: 0 0 auto; width: 100%; min-width: 0; max-width: 100%; height: 44px; }
+  .chronological-logo-image, .chronological-logo-custom > * { width: 100%; max-width: 100%; max-height: 40px; }
+  .chronological-card-topline { max-width: 100%; }
+  .chronological-card-title { max-width: 100%; overflow-wrap: anywhere; }
   .chronological-era-header { grid-template-columns: 1fr; gap: 7px; margin: 14px 0; }
   .chronological-era-header::before, .chronological-era-header::after { display: none; }
   .chronological-era-header > div { justify-self: start; margin-left: 28px; }

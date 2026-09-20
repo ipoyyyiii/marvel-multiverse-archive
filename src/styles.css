@@ -733,12 +733,40 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   }
   .global-search input { min-width: 0; font-size: 16px; }
   .global-search input::placeholder { text-overflow: ellipsis; }
-  .top-nav:focus-within .brand-lockup { display: none; }
+  /* Mobile focus expansion keeps the hamburger + MARVEL mark always
+     visible: only the archive name/divider yield space, the toggle stays
+     >=44px tappable, and search flexes in the remaining track. */
+  .top-nav:focus-within,
+  .top-nav:has(.global-search.focused) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .top-nav:focus-within .brand-lockup,
+  .top-nav:has(.global-search.focused) .brand-lockup {
+    display: flex;
+    visibility: visible;
+  }
+  .top-nav:focus-within .brand-divider,
+  .top-nav:has(.global-search.focused) .brand-divider,
+  .top-nav:focus-within .archive-name,
+  .top-nav:has(.global-search.focused) .archive-name {
+    display: none;
+  }
+  .top-nav:focus-within .sidebar-toggle,
+  .top-nav:has(.global-search.focused) .sidebar-toggle {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+  .top-nav:focus-within .marvel-mark,
+  .top-nav:has(.global-search.focused) .marvel-mark {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
   .top-nav:focus-within .nav-actions,
   .top-nav:has(.global-search.focused) .nav-actions {
-    grid-column: 1 / -1;
+    grid-column: 2;
     grid-row: 1;
-    width: 100%;
+    min-width: 0;
     flex: 1 1 auto;
   }
   .top-nav:focus-within .global-search,
@@ -1202,6 +1230,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .release-group-header > b { flex: 0 0 auto; color: color-mix(in srgb, var(--release-group-accent) 62%, #fff 22%); font: 700 8px/1 "Barlow Condensed", sans-serif; letter-spacing: .8px; }
 .release-group-rule { height: 1px; margin: 0 12px; background: linear-gradient(90deg, color-mix(in srgb, var(--release-group-accent) 60%, transparent), transparent 76%); opacity: .55; }
 .release-title-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(106px, 1fr)); align-items: start; gap: 5px; padding: 8px; }
+/* Single-title groups center their lone node instead of left-aligning it.
+ * Base rule (not inside a media query) so it holds on desktop and mobile. */
+.release-title-grid[data-single="true"] { justify-content: center; }
 .release-title-node {
   min-width: 0;
   min-height: 86px;
@@ -1322,5 +1353,101 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     transform: none;
     opacity: 1;
     pointer-events: auto;
+  }
+}
+
+/* Collapsible ExploreToolbar header — mobile only (<768px). Desktop keeps
+   the static .explore-title block and flat .view-controls above, so its
+   visuals never change. The tap target is a real <button> with
+   aria-expanded; the chevron icons reuse lucide-react. Expansion animates
+   with the grid 0fr/1fr row trick plus transform + opacity on the inner
+   wrapper — no height/margin/padding layout animation. Premium
+   pulse/flow keyframes are untouched. */
+@media (max-width: 767px) {
+  .explore-toolbar.toolbar-collapsible {
+    gap: 0;
+    padding-bottom: 8px;
+  }
+  .explore-title-toggle {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 2px 8px;
+    text-align: left;
+    color: inherit;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    touch-action: manipulation;
+  }
+  .explore-toggle-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .explore-toggle-text .eyebrow { margin-bottom: 1px; }
+  .explore-toggle-heading {
+    color: #fff;
+    font: 700 24px/1.02 "Barlow Condensed", sans-serif;
+    letter-spacing: -.35px;
+  }
+  .explore-toggle-sub {
+    margin-top: 1px;
+    color: #7f8999;
+    font-size: 10px;
+  }
+  .explore-collapsed-badge {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 10px;
+    color: #dbe8f4;
+    border: 1px solid #435064;
+    border-radius: 12px;
+    background: rgba(10, 14, 21, .88);
+    font: 700 8px/1 "Barlow Condensed", sans-serif;
+    letter-spacing: 1.1px;
+  }
+  .explore-toggle-chevron {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    color: #9aa5b6;
+  }
+  .explore-title-toggle:hover .explore-toggle-chevron { color: #fff; }
+  .explore-toolbar.toolbar-collapsible .view-controls {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows .26s ease;
+  }
+  .explore-toolbar.toolbar-collapsible .view-controls-inner {
+    min-height: 0;
+    overflow: hidden;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity .26s ease, transform .26s ease, visibility 0s linear 0s;
+    visibility: visible;
+  }
+  .explore-toolbar.toolbar-collapsed .view-controls { grid-template-rows: 0fr; }
+  .explore-toolbar.toolbar-collapsed .view-controls-inner {
+    opacity: 0;
+    transform: translateY(-6px);
+    visibility: hidden;
+    transition: opacity .22s ease, transform .22s ease, visibility 0s linear .26s;
+  }
+}
+
+/* prefers-reduced-motion: the collapse toggles instantly. */
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .explore-toolbar.toolbar-collapsible .view-controls,
+  .explore-toolbar.toolbar-collapsible .view-controls-inner {
+    transition: none;
   }
 }

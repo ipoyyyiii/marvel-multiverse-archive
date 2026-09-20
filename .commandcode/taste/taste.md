@@ -1,0 +1,14 @@
+- Prefers communication in casual informal Indonesian (bahasa gaul, e.g. lo/gue/men) over formal English/Indonesian. Confidence: 0.9
+- When curating required viewing, prefers character/story-based justification (which versions of characters appear, including forward coverage like Secret Wars when planning for Doomsday) over cast-list-only reasoning. Confidence: 0.75
+- Defines map connection lines as literal on-screen character crossovers/appearances in that film (e.g., Tobey + Andrew appearing in No Way Home warrants a line) — origin/backstory films alone do not warrant a connecting line and should exist as standalone nodes if needed. Confidence: 0.95
+- Prefers connection lines to be visually clean/readable and precisely anchored film-to-film over dense overlapping lines. Confidence: 0.8
+- Insists changes stay strictly scoped to the requested view/page only — e.g. a By Chronological Order change must not touch map, release order, sidebar, or catalog. Confidence: 0.9
+- Prefers By Chronological Order limited to single-continuity interconnected film universes (MCU, Fox, Raimi, Amazing, Sony), excluding mixed-continuity buckets like Marvel TV, Defenders, Animation, Alternate Realities, and Legacy. Confidence: 0.85
+- Prefers chronological ordering to use verified in-universe story years researched online rather than release-year fallback. Confidence: 0.8
+- Prefers right-sidebar inspector to include an always-visible plot synopsis for each film/series, placed above 'Why is this connected', so story context is readable without extra clicks. Confidence: 0.85
+- Prefers keeping premium visual animations (pulse/flow) enabled on all devices for a premium look over disabling them to save mobile battery/performance. Confidence: 0.85
+- Encourages spawning subagents and using relevant skills when it helps maximize output quality. Confidence: 0.85
+- Prefers agent to handle Vercel deployment directly (upload latest version itself) and ship live now over waiting on blocked integrations like GitHub auto-deploy, deferring proper setup for later. Confidence: 0.85
+- Prefers mobile navigation via swipe gestures (e.g., swipe to open sidebar, swipe to switch universe in release/chronology) over tap-only buttons and scrolling back to top. Confidence: 0.85
+- Prefers mobile map views that maximize viewport via collapsible headers and minimized/hidden secondary panels (overview/legend/selected) over dense always-visible chrome. Confidence: 0.8
+- Prefers to discuss/debate multi-point UI feedback and hear tradeoffs/opinion before implementation over immediate execution. Confidence: 0.75
